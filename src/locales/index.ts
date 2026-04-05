@@ -1,3 +1,4 @@
-import room from "./en/room.json"
+import room from "@/locales/en/room.json"
+import common from "@/locales/en/common.json"
 
-export default { room }
+export default { room, common }

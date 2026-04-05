@@ -3,5 +3,13 @@
   "success": {
     "title": "Link copied!",
     "description": "Share it with your friend"
+  },
+  "copyRoomLink": "Copy Link",
+  "leaveRoom": "Leave Room",
+  "leaveRoomDialog": {
+    "title": "Leave Room?",
+    "description": "Your progress will be lost and the game will end for all players.",
+    "confirm": "Leave",
+    "cancel": "Stay"
   }
 }

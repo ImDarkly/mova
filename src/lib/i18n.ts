@@ -4,7 +4,7 @@ import en from "@/locales/index"
 
 i18n.use(initReactI18next).init({
   resources: {
-    en: { translation: en },
+    en,
   },
   lng: "en", // default language
   fallbackLng: "en",
