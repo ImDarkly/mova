@@ -26,6 +26,19 @@ export default class Server implements Party.Server {
       [sender.id]
     )
   }
+
+  onRequest(req: Party.Request) {
+    const connections = [...this.room.getConnections()]
+    return new Response(
+      JSON.stringify({
+        room: this.room.id,
+        connections: connections.length,
+      }),
+      {
+        headers: { "Content-Type": "application/json" },
+      }
+    )
+  }
 }
 
 Server satisfies Party.Worker

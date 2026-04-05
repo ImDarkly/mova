@@ -16,9 +16,11 @@ export default function RoomIdDisplay({ roomId }: RoomIdDisplayProps) {
   }
 
   return (
-    <div className="flex w-full gap-1">
-      <Input readOnly value={roomId} className="font-mono" />
-      <Button onClick={handleCopy}>{t("copyRoomLink")}</Button>
+    <div className="flex gap-1">
+      <Input readOnly value={roomId} className="w-auto" />
+      <Button variant="secondary" onClick={handleCopy}>
+        {t("copyRoomLink")}
+      </Button>
     </div>
   )
 }

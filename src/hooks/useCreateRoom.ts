@@ -4,11 +4,11 @@ import { useCopyRoomLink } from "@/hooks/useCopyRoomLink"
 
 export const useCreateRoom = () => {
   const navigate = useNavigate()
-  const copyRoom = useCopyRoomLink()
+  const copyRoomLink = useCopyRoomLink()
 
   return () => {
     const roomId = generateRoomId()
-    copyRoom(roomId)
+    copyRoomLink(roomId)
     navigate(`/room/${roomId}`)
   }
 }
