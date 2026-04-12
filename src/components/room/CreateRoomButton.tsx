@@ -1,4 +1,4 @@
-import { useCreateRoom } from "@/hooks/useCreateRoom"
+import { useCreateRoom } from "@/hooks/room/useCreateRoom"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
 

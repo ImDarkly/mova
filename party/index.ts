@@ -6,80 +6,52 @@ interface Player {
   ready: boolean
 }
 
-type Players = Record<string, Player>
-
 export default class Server implements Party.Server {
+  players: Record<string, Player> = {}
+
   constructor(readonly room: Party.Room) {}
 
-  async getPlayers(): Promise<Players> {
-    return (await this.room.storage.get("players")) ?? {}
-  }
-
-  async savePLayers(players: Players): Promise<void> {
-    await this.room.storage.put("players", players)
-  }
-
-  async broadcastState(players: Players): Promise<void> {
-    this.room.broadcast(
-      JSON.stringify({
-        type: "ROOM_STATE",
-        players: Object.values(players),
-      })
-    )
-  }
-
-  async onConnect(conn: Party.Connection) {
-    const connections = [...this.room.getConnections()]
-
-    if (connections.length > MAX_PLAYERS) {
+  onConnect(conn: Party.Connection) {
+    if (Object.keys(this.players).length >= MAX_PLAYERS) {
       conn.send(JSON.stringify({ type: "ROOM_FULL" }))
       conn.close()
       return
     }
-
-    const players = await this.getPlayers()
-    players[conn.id] = { id: conn.id, ready: false }
-    await this.savePLayers(players)
-
+    this.players[conn.id] = { id: conn.id, ready: false }
     conn.send(JSON.stringify({ type: "JOINED", myId: conn.id }))
-    await this.broadcastState(players)
+    this.room.broadcast(
+      JSON.stringify({
+        type: "ROOM_STATE",
+        players: Object.values(this.players),
+      })
+    )
   }
 
-  async onClose(conn: Party.Connection) {
-    const players = await this.getPlayers()
-    delete players[conn.id]
-    await this.savePLayers(players)
-    await this.broadcastState(players)
+  onClose(conn: Party.Connection) {
+    delete this.players[conn.id]
+    this.room.broadcast(
+      JSON.stringify({
+        type: "ROOM_STATE",
+        players: Object.values(this.players),
+      })
+    )
   }
 
-  async onMessage(message: string, sender: Party.Connection) {
+  onMessage(message: string, sender: Party.Connection) {
     const msg = JSON.parse(message)
-    const players = await this.getPlayers()
+    const ready =
+      msg.type === "READY" ? true : msg.type === "UNREADY" ? false : null
+    if (ready === null) return
 
-    switch (msg.type) {
-      case "READY":
-        players[sender.id].ready = true
-        break
-      case "UNREADY":
-        players[sender.id].ready = false
-        break
-      default:
-        return
-    }
+    this.players[sender.id].ready = ready
 
-    await this.savePLayers(players)
-
-    const playerList = Object.values(players)
-    const allReady =
-      playerList.length >= MIN_PLAYERS && playerList.every((p) => p.ready)
+    const list = Object.values(this.players)
+    const allReady = list.length >= MIN_PLAYERS && list.every((p) => p.ready)
 
     if (allReady) {
       this.room.broadcast(JSON.stringify({ type: "GAME_START" }))
-      return
+    } else {
+      this.room.broadcast(JSON.stringify({ type: "ROOM_STATE", players: list }))
     }
-
-    await this.broadcastState(players)
   }
 }
-
-Server satisfies Party.Worker

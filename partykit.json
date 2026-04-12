@@ -2,5 +2,5 @@
   "$schema": "https://www.partykit.io/schema.json",
   "name": "mova-party",
   "main": "party/index.ts",
-  "compatibilityDate": "2026-04-04"
+  "compatibilityDate": "2024-01-01"
 }

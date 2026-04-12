@@ -9,12 +9,10 @@ import { Toaster } from "@/components/ui/sonner.tsx"
 import { router } from "@/routes/index.tsx"
 
 createRoot(document.getElementById("root")!).render(
-  <StrictMode>
-    <ThemeProvider>
-      <div className="flex h-svh w-full items-center justify-center p-4">
-        <RouterProvider router={router} />
-      </div>
-      <Toaster position="top-center" />
-    </ThemeProvider>
-  </StrictMode>
+  <ThemeProvider>
+    <div className="flex h-svh w-full items-center justify-center p-4">
+      <RouterProvider router={router} />
+    </div>
+    <Toaster position="top-center" />
+  </ThemeProvider>
 )
