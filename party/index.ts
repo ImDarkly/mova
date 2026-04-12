@@ -1,44 +1,57 @@
 import type * as Party from "partykit/server"
+import { MAX_PLAYERS, MIN_PLAYERS } from "./constants"
+
+interface Player {
+  id: string
+  ready: boolean
+}
 
 export default class Server implements Party.Server {
+  players: Record<string, Player> = {}
+
   constructor(readonly room: Party.Room) {}
 
-  onConnect(conn: Party.Connection, ctx: Party.ConnectionContext) {
-    // A websocket just connected!
-    console.log(
-      `Connected:
-  id: ${conn.id}
-  room: ${this.room.id}
-  url: ${new URL(ctx.request.url).pathname}`
+  onConnect(conn: Party.Connection) {
+    if (Object.keys(this.players).length >= MAX_PLAYERS) {
+      conn.send(JSON.stringify({ type: "ROOM_FULL" }))
+      conn.close()
+      return
+    }
+    this.players[conn.id] = { id: conn.id, ready: false }
+    conn.send(JSON.stringify({ type: "JOINED", myId: conn.id }))
+    this.room.broadcast(
+      JSON.stringify({
+        type: "ROOM_STATE",
+        players: Object.values(this.players),
+      })
     )
+  }
 
-    // let's send a message to the connection
-    conn.send("hello from server")
+  onClose(conn: Party.Connection) {
+    delete this.players[conn.id]
+    this.room.broadcast(
+      JSON.stringify({
+        type: "ROOM_STATE",
+        players: Object.values(this.players),
+      })
+    )
   }
 
   onMessage(message: string, sender: Party.Connection) {
-    // let's log the message
-    console.log(`connection ${sender.id} sent message: ${message}`)
-    // as well as broadcast it to all the other connections in the room...
-    this.room.broadcast(
-      `${sender.id}: ${message}`,
-      // ...except for the connection it came from
-      [sender.id]
-    )
-  }
+    const msg = JSON.parse(message)
+    const ready =
+      msg.type === "READY" ? true : msg.type === "UNREADY" ? false : null
+    if (ready === null) return
 
-  onRequest(req: Party.Request) {
-    const connections = [...this.room.getConnections()]
-    return new Response(
-      JSON.stringify({
-        room: this.room.id,
-        connections: connections.length,
-      }),
-      {
-        headers: { "Content-Type": "application/json" },
-      }
-    )
+    this.players[sender.id].ready = ready
+
+    const list = Object.values(this.players)
+    const allReady = list.length >= MIN_PLAYERS && list.every((p) => p.ready)
+
+    if (allReady) {
+      this.room.broadcast(JSON.stringify({ type: "GAME_START" }))
+    } else {
+      this.room.broadcast(JSON.stringify({ type: "ROOM_STATE", players: list }))
+    }
   }
 }
-
-Server satisfies Party.Worker

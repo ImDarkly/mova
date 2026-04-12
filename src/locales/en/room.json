@@ -10,11 +10,21 @@
     "description": "Share it manually with your friend"
   },
   "copyRoomLinkError": "Could not copy link, share it manually",
+  "joinRoom": "Join Room",
+  "roomFull": {
+    "title": "Room is full",
+    "description": "This room already has 4 players. Please create a new room or try another link."
+  },
   "leaveRoom": "Leave Room",
   "leaveRoomDialog": {
     "title": "Leave Room?",
-    "description": "Your progress will be lost and the game will end for all players.",
+    "description": "Your progress will be lost.",
     "confirm": "Leave",
     "cancel": "Stay"
-  }
+  },
+  "player": {
+    "ready": "Ready",
+    "notReady": "Not Ready"
+  },
+  "you": "You"
 }

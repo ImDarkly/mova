@@ -1,4 +1,4 @@
-import { useLeaveRoom } from "@/hooks/useLeaveRoom"
+import { useLeaveRoom } from "@/hooks/room/useLeaveRoom"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
 import {

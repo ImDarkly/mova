@@ -1,6 +1,6 @@
 import { generateRoomId } from "@/lib/roomId"
 import { useNavigate } from "react-router"
-import { useCopyRoomLink } from "@/hooks/useCopyRoomLink"
+import { useCopyRoomLink } from "@/hooks/room/useCopyRoomLink"
 
 export const useCreateRoom = () => {
   const navigate = useNavigate()
