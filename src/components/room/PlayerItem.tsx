@@ -1,0 +1,29 @@
+import type { Player } from "@/types/room"
+import { useTranslation } from "react-i18next"
+import { Item, ItemContent, ItemTitle } from "../ui/item"
+import { Badge } from "../ui/badge"
+
+interface PlayerItemProps {
+  player: Player
+  isMe: boolean
+}
+
+export default function PlayerItem({ player, isMe }: PlayerItemProps) {
+  const { t } = useTranslation("room")
+
+  return (
+    <Item variant={`${isMe ? "muted" : "outline"}`} className="w-auto">
+      <ItemContent>
+        <ItemTitle>
+          {player.id}
+          {isMe && <Badge variant="outline">{t("you")}</Badge>}
+        </ItemTitle>
+      </ItemContent>
+      <ItemContent>
+        <Badge variant={`${player.ready ? "default" : "destructive"}`}>
+          {t(player.ready ? "player.ready" : "player.notReady")}
+        </Badge>
+      </ItemContent>
+    </Item>
+  )
+}
