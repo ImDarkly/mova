@@ -1,22 +1,16 @@
-import type { CellType } from "@/lib/board"
-
-const variants: Record<CellType, string> = {
-  normal: "bg-accent",
-  doubleLetter: "bg-chart-1",
-  tripleLetter: "bg-chart-2",
-  doubleWord: "bg-chart-4",
-  tripleWord: "bg-chart-5",
-  center: "bg-foreground",
-}
-
 interface CellProps {
-  type: CellType
+  variant: string
+  label?: string
 }
 
-export default function Cell({ type = "normal" }: CellProps) {
+export default function Cell({ variant, label }: CellProps) {
   return (
     <div
-      className={`aspect-square rounded-[25%] bg-accent ${variants[type]}`}
-    />
+      className={`flex aspect-square items-center justify-center rounded-[25%] ${variant}`}
+    >
+      <span className="text-[clamp(0.6rem,1.5cqw,1.5rem)] font-bold text-accent">
+        {label}
+      </span>
+    </div>
   )
 }
