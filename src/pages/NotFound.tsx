@@ -3,7 +3,7 @@ import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 
 export default function NotFound() {
-  const { t } = useTranslation("common")
+  const { t } = useTranslation("errors")
   const navigate = useNavigate()
 
   return (
