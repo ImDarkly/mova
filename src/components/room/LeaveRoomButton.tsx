@@ -24,19 +24,19 @@ export default function LeaveRoomButton() {
   return (
     <AlertDialog>
       <AlertDialogTrigger
-        render={<Button variant="destructive">{t("leaveRoom")}</Button>}
+        render={<Button variant="destructive">{t("actions.leaveRoom")}</Button>}
       />
       <AlertDialogContent>
         <AlertDialogHeader>
-          <AlertDialogTitle>{t("leaveRoomDialog.title")}</AlertDialogTitle>
+          <AlertDialogTitle>{t("dialogs.leaveRoom.title")}</AlertDialogTitle>
           <AlertDialogDescription>
-            {t("leaveRoomDialog.description")}
+            {t("dialogs.leaveRoom.description")}
           </AlertDialogDescription>
         </AlertDialogHeader>
         <AlertDialogFooter>
-          <AlertDialogCancel>{t("leaveRoomDialog.cancel")}</AlertDialogCancel>
+          <AlertDialogCancel>{t("dialogs.leaveRoom.cancel")}</AlertDialogCancel>
           <AlertDialogAction onClick={handleLeave}>
-            {t("leaveRoomDialog.confirm")}
+            {t("dialogs.leaveRoom.confirm")}
           </AlertDialogAction>
         </AlertDialogFooter>
       </AlertDialogContent>

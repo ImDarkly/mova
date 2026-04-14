@@ -44,7 +44,7 @@ export default function JoinRoomInput() {
         variant="secondary"
         onClick={handleJoin}
       >
-        {t("joinRoom")}
+        {t("actions.joinRoom")}
       </Button>
     </div>
   )

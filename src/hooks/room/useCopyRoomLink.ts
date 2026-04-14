@@ -8,12 +8,12 @@ export const useCopyRoomLink = () => {
     const url = `${window.location.origin}/room/${roomId}`
     try {
       navigator.clipboard.writeText(url)
-      toast.success(t("success.title"), {
-        description: t("success.description"),
+      toast.success(t("status.success.copyRoomLink.title"), {
+        description: t("status.success.copyRoomLink.description"),
       })
     } catch {
-      toast.error(t("error.title"), {
-        description: t("error.description"),
+      toast.error(t("errors.clipboard.copyRoomLink.title"), {
+        description: t("errors.clipboard.copyRoomLink.description"),
       })
     }
   }

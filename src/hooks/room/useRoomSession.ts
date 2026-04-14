@@ -23,8 +23,8 @@ export function useRoomSession(roomId: string) {
             break
           case "ROOM_FULL":
             socket.close()
-            toast.error(t("roomFull.title"), {
-              description: t("roomFull.description"),
+            toast.error(t("events.roomFull.title"), {
+              description: t("events.roomFull.description"),
             })
             navigate("/")
             break
@@ -38,6 +38,17 @@ export function useRoomSession(roomId: string) {
       } catch {
         console.log("non-JSON message:", event.data)
       }
+    },
+    onError() {
+      toast.error(t("errors.connection.failed.title"), {
+        description: t("errors.connection.failed.description"),
+      })
+      navigate("/")
+    },
+    onClose() {
+      toast.error(t("errors.connection.lost.title"), {
+        description: t("errors.connection.lost.description"),
+      })
     },
   })
 

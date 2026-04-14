@@ -19,7 +19,7 @@ export default function RoomIdDisplay({ roomId }: RoomIdDisplayProps) {
     <div className="flex gap-1">
       <Input readOnly value={roomId} className="field-sizing-content" />
       <Button variant="secondary" onClick={handleCopy}>
-        {t("copyRoomLink")}
+        {t("actions.copyRoomLink")}
       </Button>
     </div>
   )
