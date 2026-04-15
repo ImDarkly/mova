@@ -1,10 +1,10 @@
 import { Separator } from "./separator"
 
 interface DividerProps {
-  label?: string
+  label: string
 }
 
-export function Divider({ label = "or" }: DividerProps) {
+export function Divider({ label }: DividerProps) {
   return (
     <div className="flex items-center gap-2">
       <Separator className="flex-1" />

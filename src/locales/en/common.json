@@ -1,6 +1,4 @@
 {
-  "notFound": {
-    "title": "Page not found",
-    "back": "Go home"
-  }
+  "or": "or",
+  "and": "and"
 }
