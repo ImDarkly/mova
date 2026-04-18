@@ -1,7 +1,7 @@
 import { toast } from "sonner"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import type { Player, ServerMessage } from "@/types/room"
 import usePartySocket from "partysocket/react"
 
@@ -10,6 +10,7 @@ export function useRoomSession(roomId: string) {
   const navigate = useNavigate()
   const [players, setPlayers] = useState<Player[]>([])
   const [myId, setMyId] = useState<string | null>(null)
+  const intentionalClose = useRef(false)
 
   const socket = usePartySocket({
     host: import.meta.env.VITE_PARTYKIT_HOST ?? "localhost:1999",
@@ -22,9 +23,10 @@ export function useRoomSession(roomId: string) {
             setMyId(msg.myId)
             break
           case "ROOM_FULL":
+            intentionalClose.current = true
             socket.close()
-            toast.error(t("roomFull.title"), {
-              description: t("roomFull.description"),
+            toast.error(t("events.roomFull.title"), {
+              description: t("events.roomFull.description"),
             })
             navigate("/")
             break
@@ -38,6 +40,19 @@ export function useRoomSession(roomId: string) {
       } catch {
         console.log("non-JSON message:", event.data)
       }
+    },
+    onError() {
+      toast.error(t("errors.connection.failed.title"), {
+        description: t("errors.connection.failed.description"),
+      })
+      navigate("/")
+    },
+    onClose() {
+      if (intentionalClose.current) return
+      toast.error(t("errors.connection.lost.title"), {
+        description: t("errors.connection.lost.description"),
+      })
+      navigate("/")
     },
   })
 

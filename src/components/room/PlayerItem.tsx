@@ -16,11 +16,11 @@ export default function PlayerItem({ player, isMe }: PlayerItemProps) {
       <ItemContent>
         <ItemTitle>
           {player.id}
-          {isMe && <Badge variant="outline">{t("you")}</Badge>}
+          {isMe && <Badge variant="outline">{t("labels.you")}</Badge>}
         </ItemTitle>
       </ItemContent>
       <ItemContent>
-        <Badge variant={`${player.ready ? "default" : "destructive"}`}>
+        <Badge variant={`${player.ready ? "default" : "secondary"}`}>
           {t(player.ready ? "player.ready" : "player.notReady")}
         </Badge>
       </ItemContent>
