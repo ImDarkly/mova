@@ -85,12 +85,12 @@ export function getCellType(row: number, col: number): CellType {
 }
 
 export const CELL_VARIANTS: Record<CellType, string> = {
-  normal: "bg-accent",
-  doubleLetter: "bg-[var(--chart-1)]",
-  tripleLetter: "bg-[var(--chart-2)]",
-  doubleWord: "bg-[var(--chart-4)]",
-  tripleWord: "bg-[var(--chart-5)]",
-  center: "bg-foreground",
+  normal: "bg-background ",
+  doubleLetter: "bg-border text-muted-foreground/80",
+  tripleLetter: "bg-muted text-muted-foreground",
+  doubleWord: "bg-primary/5 text-primary/60",
+  tripleWord: "bg-primary/10 text-primary/70",
+  center: "bg-primary/10 text-primary/70",
 }
 
 export const CELL_LABELS: Record<CellType, string> = {

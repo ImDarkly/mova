@@ -1,9 +1,20 @@
 import Board from "@/components/game/Board"
+import Rack from "@/components/game/Rack"
+import RoomLayout from "@/components/room/RoomLayout"
+import { useParams } from "react-router"
 
 export default function Game() {
+  const { roomId } = useParams<{ roomId: string }>()
+
+  if (!roomId) return null
+
   return (
-    <div className="@container-[size] flex h-full w-full flex-col items-center justify-center gap-1">
-      <Board />
-    </div>
+    <RoomLayout roomId={roomId}>
+      <div className="@container-[size] flex h-full min-h-0 w-full items-center justify-center">
+        <div className="h-32"></div>
+        <Board />
+      </div>
+      <Rack />
+    </RoomLayout>
   )
 }
