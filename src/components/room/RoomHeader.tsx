@@ -7,7 +7,7 @@ interface RoomHeaderProps {
 
 export default function RoomHeader({ roomId }: RoomHeaderProps) {
   return (
-    <div className="flex w-full justify-between gap-2">
+    <div className="flex h-16 w-full items-center justify-between gap-2">
       <RoomIdDisplay roomId={roomId} />
       <LeaveRoomButton />
     </div>
