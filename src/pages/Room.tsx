@@ -11,7 +11,7 @@ export default function Room() {
 
   return (
     <RoomLayout roomId={roomId}>
-      <div className="flex h-full w-full flex-col gap-2">
+      <div className="flex min-h-0 w-full flex-1 flex-col gap-2">
         <RoomLobby players={players} send={send} myId={myId} />
       </div>
     </RoomLayout>

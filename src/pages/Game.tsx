@@ -11,7 +11,6 @@ export default function Game() {
   return (
     <RoomLayout roomId={roomId}>
       <div className="@container-[size] flex h-full min-h-0 w-full items-center justify-center">
-        <div className="h-32"></div>
         <Board />
       </div>
       <Rack />

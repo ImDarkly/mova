@@ -10,7 +10,7 @@ export default function Board() {
   return (
     <div className="size-[min(100cqw,100cqh)] rounded-xl bg-border p-[clamp(4px,1cqw,16px)]">
       <div
-        className="grid h-full w-full gap-px overflow-hidden rounded-lg"
+        className="grid w-full flex-1 gap-px overflow-hidden rounded-lg"
         style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 1fr)` }}
       >
         {Array.from({ length: BOARD_SIZE * BOARD_SIZE }).map((_, i) => {
