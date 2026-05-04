@@ -38,7 +38,17 @@ export default class Server implements Party.Server {
   }
 
   onMessage(message: string, sender: Party.Connection) {
-    const msg = JSON.parse(message)
+    let msg: unknown
+    try {
+      msg = JSON.parse(message)
+    } catch {
+      return
+    }
+
+    if (!this.players[sender.id]) return
+
+    if (typeof msg !== "object" || msg === null || !("type" in msg)) return
+
     const ready =
       msg.type === "READY" ? true : msg.type === "UNREADY" ? false : null
     if (ready === null) return
