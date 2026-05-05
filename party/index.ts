@@ -1,13 +1,53 @@
 import type * as Party from "partykit/server"
-import { MAX_PLAYERS, MIN_PLAYERS } from "./constants"
+import {
+  MAX_PLAYERS,
+  MIN_PLAYERS,
+  RACK_SIZE,
+  TILE_DISTRIBUTION,
+} from "./constants"
 
 interface Player {
   id: string
   ready: boolean
+  rack: Tile[]
+}
+
+export interface Tile {
+  letter: string
+  points: number
+}
+
+function buildBag(): Tile[] {
+  const bag: Tile[] = []
+  for (const { letter, points, count } of TILE_DISTRIBUTION) {
+    for (let i = 0; i < count; i++) {
+      bag.push({ letter, points })
+    }
+  }
+  return bag
+}
+
+function shuffleBag(bag: Tile[]): Tile[] {
+  const shuffled = [...bag]
+  for (let i = shuffled.length - 1; i > 1; i--) {
+    const j = Math.floor(Math.random() * (i + 1))
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
+function drawTiles(
+  bag: Tile[],
+  count: number
+): { drawn: Tile[]; remaining: Tile[] } {
+  const remaining = [...bag]
+  const drawn = remaining.splice(0, count)
+  return { drawn, remaining }
 }
 
 export default class Server implements Party.Server {
   players: Record<string, Player> = {}
+  bag: Tile[] = []
 
   constructor(readonly room: Party.Room) {}
 
@@ -46,7 +86,6 @@ export default class Server implements Party.Server {
     }
 
     if (!this.players[sender.id]) return
-
     if (typeof msg !== "object" || msg === null || !("type" in msg)) return
 
     const ready =
@@ -63,5 +102,40 @@ export default class Server implements Party.Server {
     } else {
       this.room.broadcast(JSON.stringify({ type: "ROOM_STATE", players: list }))
     }
+  }
+  startGame() {
+    this.bag = shuffleBag(buildBag())
+
+    for (const conn of this.room.getConnections()) {
+      const player = this.players[conn.id]
+      if (!player) continue
+
+      const { drawn, remaining } = drawTiles(this.bag, RACK_SIZE)
+      this.bag = remaining
+      player.rack = drawn
+
+      conn.send(JSON.stringify({ type: "RACK_STATE", tiles: drawn }))
+    }
+
+    this.room.broadcast(JSON.stringify({ type: "GAME_START" }))
+  }
+
+  refillRack(connId: string) {
+    const player = this.players[connId]
+    if (!player) return
+
+    const needed = RACK_SIZE - player.rack.length
+    if (needed <= 0 || this.bag.length === 0) return
+
+    const { drawn, remaining } = drawTiles(
+      this.bag,
+      Math.min(needed, this.bag.length)
+    )
+
+    this.bag = remaining
+    player.rack.push(...drawn)
+
+    const conn = [...this.room.getConnections()].find((c) => c.id === connId)
+    conn?.send(JSON.stringify({ type: "RACK_STATE", tiles: player.rack }))
   }
 }
