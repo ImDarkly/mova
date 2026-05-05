@@ -1,3 +1,16 @@
-export default function Rack() {
-  return <div className="h-20 rounded-xl bg-border"></div>
+import Tile from "@/components/game/Tile"
+import type { TileType } from "@/types/room"
+
+interface RackProps {
+  tiles: TileType[]
+}
+
+export default function Rack({ tiles }: RackProps) {
+  return (
+    <div className="flex h-20 w-full items-center justify-center gap-1 rounded-xl bg-border px-2">
+      {tiles.map((tile, i) => (
+        <Tile key={i} tile={tile} />
+      ))}
+    </div>
+  )
 }

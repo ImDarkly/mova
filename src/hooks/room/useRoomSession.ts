@@ -4,24 +4,22 @@ import { useNavigate } from "react-router"
 import { useRef, useState } from "react"
 import type { Player, ServerMessage } from "@/types/room"
 import usePartySocket from "partysocket/react"
+import { getClientId } from "@/lib/clientId"
 
 export function useRoomSession(roomId: string) {
   const { t } = useTranslation("room")
   const navigate = useNavigate()
   const [players, setPlayers] = useState<Player[]>([])
-  const [myId, setMyId] = useState<string | null>(null)
   const intentionalClose = useRef(false)
 
   const socket = usePartySocket({
     host: import.meta.env.VITE_PARTYKIT_HOST ?? "localhost:1999",
     room: roomId,
+    id: getClientId(),
     onMessage(event) {
       try {
         const msg = JSON.parse(event.data) as ServerMessage
         switch (msg.type) {
-          case "JOINED":
-            setMyId(msg.myId)
-            break
           case "ROOM_FULL":
             intentionalClose.current = true
             socket.close()
@@ -58,5 +56,5 @@ export function useRoomSession(roomId: string) {
 
   const send = (data: object) => socket.send(JSON.stringify(data))
 
-  return { players, myId, send }
+  return { players, send }
 }

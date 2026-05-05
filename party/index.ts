@@ -29,7 +29,7 @@ function buildBag(): Tile[] {
 
 function shuffleBag(bag: Tile[]): Tile[] {
   const shuffled = [...bag]
-  for (let i = shuffled.length - 1; i > 1; i--) {
+  for (let i = shuffled.length - 1; i > 0; i--) {
     const j = Math.floor(Math.random() * (i + 1))
     ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
@@ -48,17 +48,44 @@ function drawTiles(
 export default class Server implements Party.Server {
   players: Record<string, Player> = {}
   bag: Tile[] = []
+  gameStarted = false
 
   constructor(readonly room: Party.Room) {}
 
   onConnect(conn: Party.Connection) {
+    if (this.gameStarted && !this.players[conn.id]) {
+      conn.send(JSON.stringify({ type: "ROOM_FULL" }))
+      conn.close()
+      return
+    }
+
     if (Object.keys(this.players).length >= MAX_PLAYERS) {
       conn.send(JSON.stringify({ type: "ROOM_FULL" }))
       conn.close()
       return
     }
-    this.players[conn.id] = { id: conn.id, ready: false }
-    conn.send(JSON.stringify({ type: "JOINED", myId: conn.id }))
+
+    const existing = this.players[conn.id]
+
+    if (!existing) {
+      this.players[conn.id] = {
+        id: conn.id,
+        ready: false,
+        rack: [],
+      }
+    }
+
+    const player = this.players[conn.id]
+
+    if (player.rack.length > 0) {
+      conn.send(
+        JSON.stringify({
+          type: "RACK_STATE",
+          tiles: player.rack,
+        })
+      )
+    }
+
     this.room.broadcast(
       JSON.stringify({
         type: "ROOM_STATE",
@@ -68,7 +95,12 @@ export default class Server implements Party.Server {
   }
 
   onClose(conn: Party.Connection) {
+    if (this.gameStarted) {
+      return
+    }
+
     delete this.players[conn.id]
+
     this.room.broadcast(
       JSON.stringify({
         type: "ROOM_STATE",
@@ -98,12 +130,15 @@ export default class Server implements Party.Server {
     const allReady = list.length >= MIN_PLAYERS && list.every((p) => p.ready)
 
     if (allReady) {
-      this.room.broadcast(JSON.stringify({ type: "GAME_START" }))
+      this.startGame()
     } else {
       this.room.broadcast(JSON.stringify({ type: "ROOM_STATE", players: list }))
     }
   }
   startGame() {
+    if (this.gameStarted) return
+    this.gameStarted = true
+
     this.bag = shuffleBag(buildBag())
 
     for (const conn of this.room.getConnections()) {
