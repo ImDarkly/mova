@@ -1,5 +1,7 @@
+import type { CellVariant } from "@/lib/board"
+
 interface CellProps {
-  variant: string
+  variant: CellVariant
   label?: string
 }
 

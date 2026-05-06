@@ -84,14 +84,14 @@ export function getCellType(row: number, col: number): CellType {
   return CELL_TYPES[row * BOARD_SIZE + col] ?? "normal"
 }
 
-export const CELL_VARIANTS: Record<CellType, string> = {
+export const CELL_VARIANTS = {
   normal: "bg-background ",
   doubleLetter: "bg-border text-muted-foreground/80",
   tripleLetter: "bg-muted text-muted-foreground",
   doubleWord: "bg-primary/5 text-primary/60",
   tripleWord: "bg-primary/10 text-primary/70",
   center: "bg-primary/10 text-primary/70",
-}
+} as const satisfies Record<CellType, string>
 
 export const CELL_LABELS: Record<CellType, string> = {
   normal: "",
@@ -101,3 +101,5 @@ export const CELL_LABELS: Record<CellType, string> = {
   tripleWord: "TW",
   center: "★",
 }
+
+export type CellVariant = (typeof CELL_VARIANTS)[CellType]
