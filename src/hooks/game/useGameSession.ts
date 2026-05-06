@@ -1,15 +1,16 @@
 import { getClientId } from "@/lib/clientId"
 import type { ServerMessage, TileType } from "@/types/room"
 import usePartySocket from "partysocket/react"
-import { useState } from "react"
+import { useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
 
 export function useGameSession(roomId: string) {
-  const { t } = useTranslation()
+  const { t } = useTranslation("game")
   const navigate = useNavigate()
   const [tiles, setTiles] = useState<TileType[]>([])
+  const intentionalClose = useRef(false)
 
   const socket = usePartySocket({
     host: import.meta.env.VITE_PARTYKIT_HOST ?? "localhost:1999",
@@ -34,6 +35,8 @@ export function useGameSession(roomId: string) {
       navigate("/")
     },
     onClose() {
+      if (intentionalClose.current) return
+      intentionalClose.current = true
       toast.error(t("errors.connection.lost.title"), {
         description: t("errors.connection.lost.description"),
       })

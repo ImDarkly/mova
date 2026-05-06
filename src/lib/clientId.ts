@@ -1,8 +1,12 @@
 export function getClientId(): string {
   const key = "clientId"
-  const existing = localStorage.getItem(key)
-  if (existing) return existing
-  const id = crypto.randomUUID()
-  localStorage.setItem(key, id)
-  return id
+  try {
+    const existing = localStorage.getItem(key)
+    if (existing) return existing
+    const id = crypto.randomUUID()
+    localStorage.setItem(key, id)
+    return id
+  } catch {
+    return crypto.randomUUID()
+  }
 }

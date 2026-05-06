@@ -1,0 +1,14 @@
+{
+  "errors": {
+    "connection": {
+      "failed": {
+        "title": "Connection failed",
+        "description": "Unable to connect to the server. Check your connection or try again later."
+      },
+      "lost": {
+        "title": "Connection lost",
+        "description": "The connection was interrupted. You have been returned to the home screen."
+      }
+    }
+  }
+}

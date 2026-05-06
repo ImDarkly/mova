@@ -4,11 +4,8 @@ import RoomLayout from "@/components/room/RoomLayout"
 import { useGameSession } from "@/hooks/game/useGameSession"
 import { useParams } from "react-router"
 
-export default function Game() {
-  const { roomId } = useParams<{ roomId: string }>()
-  const { tiles } = useGameSession(roomId!)
-
-  if (!roomId) return null
+function GameSessionView({ roomId }: { roomId: string }) {
+  const { tiles } = useGameSession(roomId)
 
   return (
     <RoomLayout roomId={roomId}>
@@ -18,4 +15,12 @@ export default function Game() {
       <Rack tiles={tiles} />
     </RoomLayout>
   )
+}
+
+export default function Game() {
+  const { roomId } = useParams<{ roomId: string }>()
+
+  if (!roomId) return null
+
+  return <GameSessionView roomId={roomId} />
 }

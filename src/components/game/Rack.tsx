@@ -7,7 +7,7 @@ interface RackProps {
 
 export default function Rack({ tiles }: RackProps) {
   return (
-    <div className="flex w-auto items-center justify-center gap-1 rounded-xl bg-border px-2 py-2">
+    <div className="@container flex w-auto items-center justify-center gap-1 rounded-xl bg-border px-2 py-2">
       {tiles.map((tile, i) => (
         <Tile key={i} tile={tile} />
       ))}

@@ -45,6 +45,11 @@ function drawTiles(
   return { drawn, remaining }
 }
 
+function toPublicPlayer(p: Player): Omit<Player, "rack"> {
+  const { rack: _, ...pub } = p
+  return pub
+}
+
 export default class Server implements Party.Server {
   players: Record<string, Player> = {}
   bag: Tile[] = []
@@ -53,16 +58,13 @@ export default class Server implements Party.Server {
   constructor(readonly room: Party.Room) {}
 
   onConnect(conn: Party.Connection) {
-    if (this.gameStarted && !this.players[conn.id]) {
-      conn.send(JSON.stringify({ type: "ROOM_FULL" }))
-      conn.close()
-      return
-    }
-
-    if (Object.keys(this.players).length >= MAX_PLAYERS) {
-      conn.send(JSON.stringify({ type: "ROOM_FULL" }))
-      conn.close()
-      return
+    const isReconnect = !!this.players[conn.id]
+    if (!isReconnect) {
+      if (this.gameStarted || Object.keys(this.players).length >= MAX_PLAYERS) {
+        conn.send(JSON.stringify({ type: "ROOM_FULL" }))
+        conn.close()
+        return
+      }
     }
 
     const existing = this.players[conn.id]
@@ -89,7 +91,7 @@ export default class Server implements Party.Server {
     this.room.broadcast(
       JSON.stringify({
         type: "ROOM_STATE",
-        players: Object.values(this.players),
+        players: Object.values(this.players).map(toPublicPlayer),
       })
     )
   }
@@ -104,7 +106,7 @@ export default class Server implements Party.Server {
     this.room.broadcast(
       JSON.stringify({
         type: "ROOM_STATE",
-        players: Object.values(this.players),
+        players: Object.values(this.players).map(toPublicPlayer),
       })
     )
   }
@@ -132,7 +134,12 @@ export default class Server implements Party.Server {
     if (allReady) {
       this.startGame()
     } else {
-      this.room.broadcast(JSON.stringify({ type: "ROOM_STATE", players: list }))
+      this.room.broadcast(
+        JSON.stringify({
+          type: "ROOM_STATE",
+          players: list.map(toPublicPlayer),
+        })
+      )
     }
   }
   startGame() {
@@ -170,7 +177,8 @@ export default class Server implements Party.Server {
     this.bag = remaining
     player.rack.push(...drawn)
 
-    const conn = [...this.room.getConnections()].find((c) => c.id === connId)
-    conn?.send(JSON.stringify({ type: "RACK_STATE", tiles: player.rack }))
+    this.room
+      .getConnection(connId)
+      ?.send(JSON.stringify({ type: "RACK_STATE", tiles: player.rack }))
   }
 }
