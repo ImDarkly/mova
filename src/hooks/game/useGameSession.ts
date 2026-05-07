@@ -1,15 +1,15 @@
-import { toast } from "sonner"
+import { getClientId } from "@/lib/clientId"
+import type { ServerMessage, TileType } from "@/types/room"
+import usePartySocket from "partysocket/react"
+import { useCallback, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
-import { useRef, useState } from "react"
-import type { Player, ServerMessage } from "@/types/room"
-import usePartySocket from "partysocket/react"
-import { getClientId } from "@/lib/clientId"
+import { toast } from "sonner"
 
-export function useRoomSession(roomId: string) {
-  const { t } = useTranslation("room")
+export function useGameSession(roomId: string) {
+  const { t } = useTranslation("game")
   const navigate = useNavigate()
-  const [players, setPlayers] = useState<Player[]>([])
+  const [tiles, setTiles] = useState<TileType[]>([])
   const intentionalClose = useRef(false)
 
   const socket = usePartySocket({
@@ -20,19 +20,8 @@ export function useRoomSession(roomId: string) {
       try {
         const msg = JSON.parse(event.data) as ServerMessage
         switch (msg.type) {
-          case "ROOM_FULL":
-            intentionalClose.current = true
-            socket.close()
-            toast.error(t("events.roomFull.title"), {
-              description: t("events.roomFull.description"),
-            })
-            navigate("/")
-            break
-          case "ROOM_STATE":
-            setPlayers(msg.players)
-            break
-          case "GAME_START":
-            navigate(`/game/${roomId}`)
+          case "RACK_STATE":
+            setTiles(msg.tiles)
             break
         }
       } catch {
@@ -40,6 +29,7 @@ export function useRoomSession(roomId: string) {
       }
     },
     onError() {
+      intentionalClose.current = true
       toast.error(t("errors.connection.failed.title"), {
         description: t("errors.connection.failed.description"),
       })
@@ -47,6 +37,7 @@ export function useRoomSession(roomId: string) {
     },
     onClose() {
       if (intentionalClose.current) return
+      intentionalClose.current = true
       toast.error(t("errors.connection.lost.title"), {
         description: t("errors.connection.lost.description"),
       })
@@ -54,7 +45,10 @@ export function useRoomSession(roomId: string) {
     },
   })
 
-  const send = (data: object) => socket.send(JSON.stringify(data))
+  const send = useCallback(
+    (data: object) => socket.send(JSON.stringify(data)),
+    [socket]
+  )
 
-  return { players, send }
+  return { tiles, send }
 }

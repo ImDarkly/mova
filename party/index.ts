@@ -1,38 +1,136 @@
 import type * as Party from "partykit/server"
-import { MAX_PLAYERS, MIN_PLAYERS } from "./constants"
+import {
+  MAX_PLAYERS,
+  MIN_PLAYERS,
+  RACK_SIZE,
+  TILE_DISTRIBUTION,
+} from "./constants"
 
 interface Player {
   id: string
   ready: boolean
+  rack: Tile[]
+  connected: boolean
+}
+
+export interface Tile {
+  letter: string
+  points: number
+}
+
+function buildBag(): Tile[] {
+  const bag: Tile[] = []
+  for (const { letter, points, count } of TILE_DISTRIBUTION) {
+    for (let i = 0; i < count; i++) {
+      bag.push({ letter, points })
+    }
+  }
+  return bag
+}
+
+function shuffleBag(bag: Tile[]): Tile[] {
+  const shuffled = [...bag]
+  const rand = new Uint32Array(1)
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    crypto.getRandomValues(rand)
+    const j = rand[0] % (i + 1)
+    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
+  }
+  return shuffled
+}
+
+function drawTiles(
+  bag: Tile[],
+  count: number
+): { drawn: Tile[]; remaining: Tile[] } {
+  const remaining = [...bag]
+  const drawn = remaining.splice(0, count)
+  return { drawn, remaining }
+}
+
+function toPublicPlayer(p: Player): Omit<Player, "rack"> {
+  const { rack: _, ...pub } = p
+  return pub
 }
 
 export default class Server implements Party.Server {
   players: Record<string, Player> = {}
+  bag: Tile[] = []
+  gameStarted = false
 
   constructor(readonly room: Party.Room) {}
 
   onConnect(conn: Party.Connection) {
-    if (Object.keys(this.players).length >= MAX_PLAYERS) {
-      conn.send(JSON.stringify({ type: "ROOM_FULL" }))
-      conn.close()
-      return
+    const isReconnect = !!this.players[conn.id]
+    if (!isReconnect) {
+      if (this.gameStarted || Object.keys(this.players).length >= MAX_PLAYERS) {
+        conn.send(JSON.stringify({ type: "ROOM_FULL" }))
+        conn.close()
+        return
+      }
     }
-    this.players[conn.id] = { id: conn.id, ready: false }
-    conn.send(JSON.stringify({ type: "JOINED", myId: conn.id }))
+
+    const existing = this.players[conn.id]
+
+    if (!existing) {
+      this.players[conn.id] = {
+        id: conn.id,
+        ready: false,
+        rack: [],
+        connected: true,
+      }
+    }
+
+    const player = this.players[conn.id]
+    player.connected = true
+
+    if (player.rack.length > 0) {
+      conn.send(
+        JSON.stringify({
+          type: "RACK_STATE",
+          tiles: player.rack,
+        })
+      )
+    }
+
+    if (isReconnect && this.gameStarted) {
+      conn.send(
+        JSON.stringify({
+          type: "GAME_START",
+          roomId: this.room.id,
+        })
+      )
+    }
+
     this.room.broadcast(
       JSON.stringify({
         type: "ROOM_STATE",
-        players: Object.values(this.players),
+        players: Object.values(this.players).map(toPublicPlayer),
       })
     )
   }
 
   onClose(conn: Party.Connection) {
+    const player = this.players[conn.id]
+    if (this.gameStarted) {
+      if (player) {
+        player.connected = false
+        this.room.broadcast(
+          JSON.stringify({
+            type: "ROOM_STATE",
+            players: Object.values(this.players).map(toPublicPlayer),
+          })
+        )
+      }
+      return
+    }
+
     delete this.players[conn.id]
+
     this.room.broadcast(
       JSON.stringify({
         type: "ROOM_STATE",
-        players: Object.values(this.players),
+        players: Object.values(this.players).map(toPublicPlayer),
       })
     )
   }
@@ -46,7 +144,6 @@ export default class Server implements Party.Server {
     }
 
     if (!this.players[sender.id]) return
-
     if (typeof msg !== "object" || msg === null || !("type" in msg)) return
 
     const ready =
@@ -59,9 +156,54 @@ export default class Server implements Party.Server {
     const allReady = list.length >= MIN_PLAYERS && list.every((p) => p.ready)
 
     if (allReady) {
-      this.room.broadcast(JSON.stringify({ type: "GAME_START" }))
+      this.startGame()
     } else {
-      this.room.broadcast(JSON.stringify({ type: "ROOM_STATE", players: list }))
+      this.room.broadcast(
+        JSON.stringify({
+          type: "ROOM_STATE",
+          players: list.map(toPublicPlayer),
+        })
+      )
     }
+  }
+  startGame() {
+    if (this.gameStarted) return
+    this.gameStarted = true
+
+    this.bag = shuffleBag(buildBag())
+
+    for (const id in this.players) {
+      const player = this.players[id]
+
+      const { drawn, remaining } = drawTiles(this.bag, RACK_SIZE)
+      this.bag = remaining
+      player.rack = drawn
+
+      this.room
+        .getConnection(id)
+        ?.send(JSON.stringify({ type: "RACK_STATE", tiles: drawn }))
+    }
+
+    this.room.broadcast(JSON.stringify({ type: "GAME_START" }))
+  }
+
+  refillRack(connId: string) {
+    const player = this.players[connId]
+    if (!player) return
+
+    const needed = RACK_SIZE - player.rack.length
+    if (needed <= 0 || this.bag.length === 0) return
+
+    const { drawn, remaining } = drawTiles(
+      this.bag,
+      Math.min(needed, this.bag.length)
+    )
+
+    this.bag = remaining
+    player.rack.push(...drawn)
+
+    this.room
+      .getConnection(connId)
+      ?.send(JSON.stringify({ type: "RACK_STATE", tiles: player.rack }))
   }
 }
