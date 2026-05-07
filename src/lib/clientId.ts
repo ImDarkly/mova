@@ -1,3 +1,5 @@
+let fallbackClientId: string | undefined
+
 export function getClientId(): string {
   const key = "clientId"
   try {
@@ -7,6 +9,7 @@ export function getClientId(): string {
     localStorage.setItem(key, id)
     return id
   } catch {
-    return crypto.randomUUID()
+    if (!fallbackClientId) fallbackClientId = crypto.randomUUID()
+    return fallbackClientId
   }
 }

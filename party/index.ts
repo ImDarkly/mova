@@ -10,6 +10,7 @@ interface Player {
   id: string
   ready: boolean
   rack: Tile[]
+  connected: boolean
 }
 
 export interface Tile {
@@ -29,8 +30,10 @@ function buildBag(): Tile[] {
 
 function shuffleBag(bag: Tile[]): Tile[] {
   const shuffled = [...bag]
+  const rand = new Uint32Array(1)
   for (let i = shuffled.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1))
+    crypto.getRandomValues(rand)
+    const j = rand[0] % (i + 1)
     ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
   }
   return shuffled
@@ -74,16 +77,27 @@ export default class Server implements Party.Server {
         id: conn.id,
         ready: false,
         rack: [],
+        connected: true,
       }
     }
 
     const player = this.players[conn.id]
+    player.connected = true
 
     if (player.rack.length > 0) {
       conn.send(
         JSON.stringify({
           type: "RACK_STATE",
           tiles: player.rack,
+        })
+      )
+    }
+
+    if (isReconnect && this.gameStarted) {
+      conn.send(
+        JSON.stringify({
+          type: "GAME_START",
+          roomId: this.room.id,
         })
       )
     }
@@ -97,7 +111,17 @@ export default class Server implements Party.Server {
   }
 
   onClose(conn: Party.Connection) {
+    const player = this.players[conn.id]
     if (this.gameStarted) {
+      if (player) {
+        player.connected = false
+        this.room.broadcast(
+          JSON.stringify({
+            type: "ROOM_STATE",
+            players: Object.values(this.players).map(toPublicPlayer),
+          })
+        )
+      }
       return
     }
 
@@ -148,15 +172,16 @@ export default class Server implements Party.Server {
 
     this.bag = shuffleBag(buildBag())
 
-    for (const conn of this.room.getConnections()) {
-      const player = this.players[conn.id]
-      if (!player) continue
+    for (const id in this.players) {
+      const player = this.players[id]
 
       const { drawn, remaining } = drawTiles(this.bag, RACK_SIZE)
       this.bag = remaining
       player.rack = drawn
 
-      conn.send(JSON.stringify({ type: "RACK_STATE", tiles: drawn }))
+      this.room
+        .getConnection(id)
+        ?.send(JSON.stringify({ type: "RACK_STATE", tiles: drawn }))
     }
 
     this.room.broadcast(JSON.stringify({ type: "GAME_START" }))

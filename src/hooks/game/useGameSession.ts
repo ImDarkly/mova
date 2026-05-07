@@ -1,7 +1,7 @@
 import { getClientId } from "@/lib/clientId"
 import type { ServerMessage, TileType } from "@/types/room"
 import usePartySocket from "partysocket/react"
-import { useRef, useState } from "react"
+import { useCallback, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
@@ -29,6 +29,7 @@ export function useGameSession(roomId: string) {
       }
     },
     onError() {
+      intentionalClose.current = true
       toast.error(t("errors.connection.failed.title"), {
         description: t("errors.connection.failed.description"),
       })
@@ -44,7 +45,10 @@ export function useGameSession(roomId: string) {
     },
   })
 
-  const send = (data: object) => socket.send(JSON.stringify(data))
+  const send = useCallback(
+    (data: object) => socket.send(JSON.stringify(data)),
+    [socket]
+  )
 
   return { tiles, send }
 }
