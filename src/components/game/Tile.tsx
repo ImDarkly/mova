@@ -3,6 +3,8 @@ import type { TileType } from "@/types/room"
 import { useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 
+//TODO: fix number overlapping letter when on board. Adjust padding on mobile when on board.
+
 const LETTER_SIZE = "text-[clamp(1rem,3.5cqw,1.5rem)]"
 const POINTS_SIZE = "text-[clamp(0.5rem,1.5cqw,0.75rem)]"
 

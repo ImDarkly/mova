@@ -5,8 +5,14 @@ import {
   CELL_LABELS,
 } from "@/lib/board"
 import Cell from "@/components/game/Cell"
+import type { PlacedTiles } from "@/hooks/game/usePlacement"
+import Tile from "@/components/game/Tile"
 
-export default function Board() {
+interface BoardProps {
+  placements: PlacedTiles
+}
+
+export default function Board({ placements }: BoardProps) {
   return (
     <div className="size-[min(100cqw,100cqh)] rounded-xl bg-border p-[clamp(4px,1cqw,16px)]">
       <div
@@ -18,11 +24,19 @@ export default function Board() {
           const col = i % BOARD_SIZE
           const type = getCellType(row, col)
           return (
-            <Cell
-              key={i}
-              variant={CELL_VARIANTS[type]}
-              label={CELL_LABELS[type]}
-            />
+            <div key={i} className="relative">
+              <Cell
+                cellIndex={i}
+                variant={CELL_VARIANTS[type]}
+                label={CELL_LABELS[type]}
+                isOccupied={!!placements[i]}
+              />
+              {placements[i] && (
+                <div className="absolute inset-0 flex items-center justify-center">
+                  <Tile rackIndex={i} tile={placements[i]} />
+                </div>
+              )}
+            </div>
           )
         })}
       </div>
