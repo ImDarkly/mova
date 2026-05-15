@@ -12,7 +12,10 @@ export default function PlayerItem({ player, isMe }: PlayerItemProps) {
   const { t } = useTranslation("room")
 
   return (
-    <Item variant={`${isMe ? "muted" : "outline"}`} className="w-auto">
+    <Item
+      variant={player.ready ? "muted" : isMe ? "outline" : "default"}
+      className="w-auto"
+    >
       <ItemContent>
         <ItemTitle>
           {player.id}
@@ -20,7 +23,7 @@ export default function PlayerItem({ player, isMe }: PlayerItemProps) {
         </ItemTitle>
       </ItemContent>
       <ItemContent>
-        <Badge variant={`${player.ready ? "default" : "secondary"}`}>
+        <Badge variant={player.ready ? "default" : "secondary"}>
           {t(player.ready ? "player.ready" : "player.notReady")}
         </Badge>
       </ItemContent>

@@ -5,16 +5,22 @@ import { CSS } from "@dnd-kit/utilities"
 
 //TODO: fix number overlapping letter when on board. Adjust padding on mobile when on board.
 
-const LETTER_SIZE = "text-[clamp(1rem,3.5cqw,1.5rem)]"
-const POINTS_SIZE = "text-[clamp(0.5rem,1.5cqw,0.75rem)]"
+const LETTER_SIZE = "text-[clamp(1rem,3.5cqw,2rem)]"
+const POINTS_SIZE = "text-[clamp(0.5rem,3.5cqw,1rem)]"
 
 interface TileProps {
   tile: TileType
   rackIndex: number
   disabled?: boolean
+  hidePoints?: boolean
 }
 
-export default function Tile({ tile, rackIndex, disabled }: TileProps) {
+export default function Tile({
+  tile,
+  rackIndex,
+  disabled,
+  hidePoints,
+}: TileProps) {
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: `rack-${rackIndex}`,
@@ -28,7 +34,7 @@ export default function Tile({ tile, rackIndex, disabled }: TileProps) {
 
   return (
     <div
-      className="relative aspect-square h-full max-h-14 max-w-14 min-w-0 flex-1"
+      className="relative h-full w-full"
       ref={setNodeRef}
       style={style}
       {...listeners}
@@ -36,21 +42,23 @@ export default function Tile({ tile, rackIndex, disabled }: TileProps) {
     >
       <div
         className={cn(
-          "absolute inset-[6%] flex aspect-square items-center justify-center rounded-[12%] bg-card shadow-sm ring-1 ring-border",
+          "absolute inset-[6%] flex items-center justify-center rounded-[12%] bg-card shadow-sm ring-1 ring-border",
           isDragging && "opacity-0"
         )}
       >
         <span className={cn("font-bold text-foreground", LETTER_SIZE)}>
           {tile.letter}
         </span>
-        <span
-          className={cn(
-            "absolute right-[12%] bottom-[10%] font-medium text-muted-foreground",
-            POINTS_SIZE
-          )}
-        >
-          {tile.points}
-        </span>
+        {!hidePoints && (
+          <span
+            className={cn(
+              "absolute right-[16%] bottom-[12%] font-medium text-muted-foreground",
+              POINTS_SIZE
+            )}
+          >
+            {tile.points}
+          </span>
+        )}
       </div>
     </div>
   )

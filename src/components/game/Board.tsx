@@ -14,7 +14,7 @@ interface BoardProps {
 
 export default function Board({ placements }: BoardProps) {
   return (
-    <div className="size-[min(100cqw,100cqh)] rounded-xl bg-border p-[clamp(4px,1cqw,16px)]">
+    <div className="@container size-[min(100cqw,100cqh)] rounded-xl bg-border p-[clamp(4px,1cqw,16px)]">
       <div
         className="grid w-full flex-1 gap-px overflow-hidden rounded-lg"
         style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 1fr)` }}
@@ -32,8 +32,8 @@ export default function Board({ placements }: BoardProps) {
                 isOccupied={!!placements[i]}
               />
               {placements[i] && (
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <Tile rackIndex={i} tile={placements[i]} />
+                <div className="absolute inset-0 flex h-full items-center justify-center">
+                  <Tile rackIndex={i} tile={placements[i]} hidePoints />
                 </div>
               )}
             </div>
