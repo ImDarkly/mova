@@ -29,8 +29,11 @@ function GameSessionView({ roomId }: { roomId: string }) {
   )
 
   const handleDragStart = (event: DragStartEvent) => {
-    const { tile } = event.active.data.current as { tile: TileType }
-    setActiveTile(tile)
+    const activeData = event.active.data.current as
+      | { tile?: TileType }
+      | undefined
+    if (!activeData?.tile) return
+    setActiveTile(activeData.tile)
   }
 
   const handleDragEnd = (event: DragEndEvent) => {
@@ -39,12 +42,17 @@ function GameSessionView({ roomId }: { roomId: string }) {
     const { active, over } = event
     if (!over) return
 
-    const { rackIndex } = active.data.current as { rackIndex: number }
-    const { cellIndex } = over.data.current as { cellIndex: number }
+    const activeData = active.data.current as { rackIndex?: number } | undefined
+    const overData = over.data.current as { cellIndex?: number } | undefined
+    if (
+      typeof activeData?.rackIndex !== "number" ||
+      typeof overData?.cellIndex !== "number"
+    ) {
+      return
+    }
+    if (isOccupied(overData.cellIndex)) return
 
-    if (isOccupied(cellIndex)) return
-
-    placeTile(rackIndex, cellIndex)
+    placeTile(activeData.rackIndex, overData.cellIndex)
   }
 
   return (
