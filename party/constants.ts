@@ -1,5 +1,6 @@
 export const MAX_PLAYERS = 4
-export const MIN_PLAYERS = 2
+//TODO: Change to 2 before release
+export const MIN_PLAYERS = 1
 
 export const TILE_DISTRIBUTION: {
   letter: string
