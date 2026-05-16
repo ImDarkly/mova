@@ -1,7 +1,7 @@
 import type { TileType } from "@/types/room"
-import { useCallback, useEffect, useState } from "react"
+import { useCallback, useState } from "react"
 
-export type PlacedTiles = Record<number, TileType>
+export type PlacedTiles = Partial<Record<number, TileType>>
 
 type PlacedIndices = Set<number>
 

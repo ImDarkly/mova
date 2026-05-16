@@ -55,11 +55,16 @@ function GameSessionView({ roomId }: { roomId: string }) {
     placeTile(activeData.rackIndex, overData.cellIndex)
   }
 
+  const handleDragCancel = () => {
+    setActiveTile(null)
+  }
+
   return (
     <DndContext
       sensors={sensors}
       onDragStart={handleDragStart}
       onDragEnd={handleDragEnd}
+      onDragCancel={handleDragCancel}
     >
       <RoomLayout roomId={roomId}>
         <div className="@container-[size] flex min-h-0 w-full flex-1 items-center justify-center">
