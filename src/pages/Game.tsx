@@ -1,34 +1,74 @@
 import Board from "@/components/game/Board"
 import Rack from "@/components/game/Rack"
+import Tile from "@/components/game/Tile"
 import RoomLayout from "@/components/room/RoomLayout"
 import { useGameSession } from "@/hooks/game/useGameSession"
-import type { PlacedTiles } from "@/hooks/game/usePlacement"
+import { usePlacement } from "@/hooks/game/usePlacement"
+import type { TileType } from "@/types/room"
+import {
+  DndContext,
+  DragOverlay,
+  PointerSensor,
+  useSensor,
+  useSensors,
+  type DragEndEvent,
+  type DragStartEvent,
+} from "@dnd-kit/core"
+import { useState } from "react"
 import { useParams } from "react-router"
-
-const MOCK_PLACEMENTS: PlacedTiles = {
-  112: { letter: "M", points: 3 }, // center (row 7, col 7)
-  113: { letter: "O", points: 1 }, // row 7, col 8
-  114: { letter: "V", points: 4 }, // row 7, col 9
-  115: { letter: "A", points: 1 }, // row 7, col 10
-}
 
 function GameSessionView({ roomId }: { roomId: string }) {
   const { tiles } = useGameSession(roomId)
+  const { rack, placements, placeTile, isOccupied } = usePlacement(tiles)
+  const [activeTile, setActiveTile] = useState<TileType | null>(null)
+
+  const sensors = useSensors(
+    useSensor(PointerSensor, {
+      activationConstraint: { distance: 8 },
+    })
+  )
+
+  const handleDragStart = (event: DragStartEvent) => {
+    const { tile } = event.active.data.current as { tile: TileType }
+    setActiveTile(tile)
+  }
+
+  const handleDragEnd = (event: DragEndEvent) => {
+    setActiveTile(null)
+
+    const { active, over } = event
+    if (!over) return
+
+    const { rackIndex } = active.data.current as { rackIndex: number }
+    const { cellIndex } = over.data.current as { cellIndex: number }
+
+    if (isOccupied(cellIndex)) return
+
+    placeTile(rackIndex, cellIndex)
+  }
 
   return (
-    <RoomLayout roomId={roomId}>
-      <div className="@container-[size] flex min-h-0 w-full flex-1 items-center justify-center">
-        <Board placements={MOCK_PLACEMENTS} />
-      </div>
-      <Rack tiles={tiles} />
-    </RoomLayout>
+    <DndContext
+      sensors={sensors}
+      onDragStart={handleDragStart}
+      onDragEnd={handleDragEnd}
+    >
+      <RoomLayout roomId={roomId}>
+        <div className="@container-[size] flex min-h-0 w-full flex-1 items-center justify-center">
+          <Board placements={placements} />
+        </div>
+        <Rack tiles={rack} />
+      </RoomLayout>
+
+      <DragOverlay>
+        {activeTile ? <Tile tile={activeTile} /> : null}
+      </DragOverlay>
+    </DndContext>
   )
 }
 
 export default function Game() {
   const { roomId } = useParams<{ roomId: string }>()
-
   if (!roomId) return null
-
   return <GameSessionView roomId={roomId} />
 }

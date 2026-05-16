@@ -3,14 +3,12 @@ import type { TileType } from "@/types/room"
 import { useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 
-//TODO: fix number overlapping letter when on board. Adjust padding on mobile when on board.
-
 const LETTER_SIZE = "text-[clamp(1rem,3.5cqw,2rem)]"
 const POINTS_SIZE = "text-[clamp(0.5rem,3.5cqw,1rem)]"
 
 interface TileProps {
   tile: TileType
-  rackIndex: number
+  rackIndex?: number
   disabled?: boolean
   hidePoints?: boolean
 }
@@ -21,16 +19,18 @@ export default function Tile({
   disabled,
   hidePoints,
 }: TileProps) {
+  const isStatic = rackIndex === undefined
+
   const { attributes, listeners, setNodeRef, transform, isDragging } =
     useDraggable({
       id: `rack-${rackIndex}`,
       disabled,
-      data: { rackIndex: tile },
+      data: { rackIndex, tile },
     })
 
-  const style = transform
-    ? { transform: CSS.Transform.toString(transform) }
-    : undefined
+  const style = {
+    transform: transform ? CSS.Transform.toString(transform) : undefined,
+  }
 
   return (
     <div
@@ -43,7 +43,7 @@ export default function Tile({
       <div
         className={cn(
           "absolute inset-[6%] flex items-center justify-center rounded-[12%] bg-card shadow-sm ring-1 ring-border",
-          isDragging && "opacity-0"
+          !isStatic && isDragging && "opacity-0"
         )}
       >
         <span className={cn("font-bold text-foreground", LETTER_SIZE)}>
