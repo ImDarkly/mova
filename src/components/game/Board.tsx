@@ -33,7 +33,7 @@ export default function Board({ placements }: BoardProps) {
               />
               {placements[i] && (
                 <div className="absolute inset-0 flex h-full items-center justify-center">
-                  <Tile rackIndex={i} tile={placements[i]} hidePoints />
+                  <Tile tile={placements[i]} hidePoints />
                 </div>
               )}
             </div>

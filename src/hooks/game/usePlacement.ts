@@ -1,5 +1,5 @@
 import type { TileType } from "@/types/room"
-import { useCallback, useState } from "react"
+import { useCallback, useEffect, useState } from "react"
 
 export type PlacedTiles = Record<number, TileType>
 
@@ -8,6 +8,14 @@ type PlacedIndices = Set<number>
 export function usePlacement(initialTiles: TileType[]) {
   const [placedIndices, setPlacedIndices] = useState<PlacedIndices>(new Set())
   const [placements, setPlacements] = useState<PlacedTiles>({})
+  const [prevInitialTiles, setPrevInitialTiles] =
+    useState<TileType[]>(initialTiles)
+
+  if (initialTiles !== prevInitialTiles) {
+    setPrevInitialTiles(initialTiles)
+    setPlacedIndices(new Set())
+    setPlacements({})
+  }
 
   const rack: (TileType | null)[] = initialTiles.map((tile, i) =>
     placedIndices.has(i) ? null : tile

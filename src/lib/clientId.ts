@@ -13,12 +13,12 @@ export function getClientId(): string {
   try {
     const existing = localStorage.getItem(key)
     if (existing) return existing
-    const id = crypto.randomUUID?.() ?? generateId()
+    const id = globalThis.crypto?.randomUUID?.() ?? generateId()
     localStorage.setItem(key, id)
     return id
   } catch {
     if (!fallbackClientId)
-      fallbackClientId = crypto.randomUUID?.() ?? generateId()
+      fallbackClientId = globalThis.crypto?.randomUUID?.() ?? generateId()
     return fallbackClientId
   }
 }
