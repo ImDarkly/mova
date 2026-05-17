@@ -57,6 +57,8 @@ export default class Server implements Party.Server {
   players: Record<string, Player> = {}
   bag: Tile[] = []
   gameStarted = false
+  playerOrder: string[] = []
+  currentTurn: string = ""
 
   constructor(readonly room: Party.Room) {}
 
@@ -68,6 +70,7 @@ export default class Server implements Party.Server {
         conn.close()
         return
       }
+      this.playerOrder.push(conn.id)
     }
 
     const existing = this.players[conn.id]
@@ -146,29 +149,47 @@ export default class Server implements Party.Server {
     if (!this.players[sender.id]) return
     if (typeof msg !== "object" || msg === null || !("type" in msg)) return
 
-    const ready =
-      msg.type === "READY" ? true : msg.type === "UNREADY" ? false : null
-    if (ready === null) return
+    if (msg.type === "READY" || msg.type === "UNREADY") {
+      this.players[sender.id].ready = msg.type === "READY"
 
-    this.players[sender.id].ready = ready
+      const list = Object.values(this.players)
+      const allReady = list.length >= MIN_PLAYERS && list.every((p) => p.ready)
 
-    const list = Object.values(this.players)
-    const allReady = list.length >= MIN_PLAYERS && list.every((p) => p.ready)
+      if (allReady) {
+        this.startGame()
+      } else {
+        this.room.broadcast(
+          JSON.stringify({
+            type: "ROOM_STATE",
+            players: list.map(toPublicPlayer),
+          })
+        )
+      }
+    }
 
-    if (allReady) {
-      this.startGame()
-    } else {
+    if (msg.type === "SUBMIT_TURN") {
+      if (sender.id === this.currentTurn) return
+
+      this.refillRack(sender.id)
+
+      const currentIndex = this.playerOrder.indexOf(this.currentTurn)
+      const nextIndex = (currentIndex + 1) % this.playerOrder.length
+      this.currentTurn = this.playerOrder[nextIndex]
+
       this.room.broadcast(
         JSON.stringify({
-          type: "ROOM_STATE",
-          players: list.map(toPublicPlayer),
+          type: "TURN_CHANGE",
+          currentTurn: this.currentTurn,
         })
       )
+      return
     }
   }
+
   startGame() {
     if (this.gameStarted) return
     this.gameStarted = true
+    this.currentTurn = this.playerOrder[0]
 
     this.bag = shuffleBag(buildBag())
 
@@ -184,7 +205,9 @@ export default class Server implements Party.Server {
         ?.send(JSON.stringify({ type: "RACK_STATE", tiles: drawn }))
     }
 
-    this.room.broadcast(JSON.stringify({ type: "GAME_START" }))
+    this.room.broadcast(
+      JSON.stringify({ type: "GAME_START", currentTurn: this.currentTurn })
+    )
   }
 
   refillRack(connId: string) {
