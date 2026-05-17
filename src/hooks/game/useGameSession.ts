@@ -1,5 +1,5 @@
 import { getClientId } from "@/lib/clientId"
-import type { ServerMessage, TileType } from "@/types/room"
+import type { Player, ServerMessage, TileType } from "@/types/room"
 import usePartySocket from "partysocket/react"
 import { useCallback, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -11,17 +11,26 @@ export function useGameSession(roomId: string) {
   const navigate = useNavigate()
   const [tiles, setTiles] = useState<TileType[]>([])
   const intentionalClose = useRef(false)
+  const myId = getClientId()
+  const [currentTurn, setCurrentTurn] = useState<string>("")
+  const [players, setPlayers] = useState<Player[]>([])
 
   const socket = usePartySocket({
     host: import.meta.env.VITE_PARTYKIT_HOST ?? "localhost:1999",
     room: roomId,
-    id: getClientId(),
+    id: myId,
     onMessage(event) {
       try {
         const msg = JSON.parse(event.data) as ServerMessage
         switch (msg.type) {
           case "RACK_STATE":
             setTiles(msg.tiles)
+            break
+          case "TURN_CHANGE":
+            setCurrentTurn(msg.currentTurn)
+            break
+          case "ROOM_STATE":
+            setPlayers(msg.players)
             break
         }
       } catch {
@@ -50,5 +59,7 @@ export function useGameSession(roomId: string) {
     [socket]
   )
 
-  return { tiles, send }
+  const isMyTurn = currentTurn === myId
+
+  return { tiles, players, currentTurn, isMyTurn, send }
 }
