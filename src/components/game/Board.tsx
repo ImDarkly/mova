@@ -5,14 +5,15 @@ import {
   CELL_LABELS,
 } from "@/lib/board"
 import Cell from "@/components/game/Cell"
-import type { PlacedTiles } from "@/hooks/game/usePlacement"
 import Tile from "@/components/game/Tile"
+import type { TileAssignments, TileType } from "@/types/room"
 
 interface BoardProps {
-  placements: PlacedTiles
+  boardTiles: Partial<Record<number, TileType>>
+  assignments: TileAssignments
 }
 
-export default function Board({ placements }: BoardProps) {
+export default function Board({ boardTiles, assignments }: BoardProps) {
   return (
     <div className="@container size-[min(100cqw,100cqh)] rounded-xl bg-border p-[clamp(4px,1cqw,16px)]">
       <div
@@ -23,17 +24,22 @@ export default function Board({ placements }: BoardProps) {
           const row = Math.floor(i / BOARD_SIZE)
           const col = i % BOARD_SIZE
           const type = getCellType(row, col)
+          const rackIndex = Number(
+            Object.entries(assignments).find(
+              ([, cellIndex]) => cellIndex === i
+            )?.[0]
+          )
           return (
             <div key={i} className="relative">
               <Cell
                 cellIndex={i}
                 variant={CELL_VARIANTS[type]}
                 label={CELL_LABELS[type]}
-                isOccupied={!!placements[i]}
+                isOccupied={!!boardTiles[i]}
               />
-              {placements[i] && (
+              {boardTiles[i] && (
                 <div className="absolute inset-0 flex h-full items-center justify-center">
-                  <Tile tile={placements[i]} hidePoints />
+                  <Tile tile={boardTiles[i]} hidePoints rackIndex={rackIndex} />
                 </div>
               )}
             </div>

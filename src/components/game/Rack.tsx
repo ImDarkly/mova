@@ -1,5 +1,7 @@
 import Tile from "@/components/game/Tile"
+import { cn } from "@/lib/utils"
 import type { TileType } from "@/types/room"
+import { useDroppable } from "@dnd-kit/core"
 
 interface RackProps {
   tiles: (TileType | null)[]
@@ -7,8 +9,16 @@ interface RackProps {
 }
 
 export default function Rack({ tiles, disabled }: RackProps) {
+  const { setNodeRef, isOver } = useDroppable({ id: "rack" })
+
   return (
-    <div className="@container flex w-auto items-center justify-center gap-1 rounded-xl bg-border px-2 py-2">
+    <div
+      ref={setNodeRef}
+      className={cn(
+        "@container flex w-auto items-center justify-center gap-1 rounded-xl bg-border px-2 py-2",
+        isOver ? "ring-2 ring-primary/30" : null
+      )}
+    >
       {tiles.map((tile, i) => (
         <div
           key={i}

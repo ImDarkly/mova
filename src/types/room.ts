@@ -15,3 +15,5 @@ export interface TileType {
   letter: string
   points: number
 }
+
+export type TileAssignments = Partial<Record<number, number>>
