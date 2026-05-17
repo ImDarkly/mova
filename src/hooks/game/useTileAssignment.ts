@@ -7,7 +7,15 @@ export function useTileAssignment(initialTiles: TileType[]) {
 
   if (initialTiles !== prevInitialTiles) {
     setPrevInitialTiles(initialTiles)
-    setAssignments({})
+    setAssignments((prev) => {
+      const cleaned = Object.fromEntries(
+        Object.entries(prev).filter(([rackIndex]) => {
+          const idx = Number(rackIndex)
+          return idx >= 0 && idx < initialTiles.length
+        })
+      )
+      return cleaned
+    })
   }
 
   const rack: (TileType | null)[] = initialTiles.map((tile, i) =>
@@ -19,7 +27,7 @@ export function useTileAssignment(initialTiles: TileType[]) {
   ).reduce(
     (acc, [rackIndex, cellIndex]) => {
       const tile = initialTiles[Number(rackIndex)]
-      if (tile && cellIndex !== undefined) acc[cellIndex] = tile
+      if (tile) acc[Number(cellIndex)] = tile
       return acc
     },
     {} as Partial<Record<number, TileType>>

@@ -9,14 +9,14 @@ interface RackProps {
 }
 
 export default function Rack({ tiles, disabled }: RackProps) {
-  const { setNodeRef, isOver } = useDroppable({ id: "rack" })
+  const { setNodeRef, isOver } = useDroppable({ id: "rack", disabled })
 
   return (
     <div
       ref={setNodeRef}
       className={cn(
         "@container flex w-auto items-center justify-center gap-1 rounded-xl bg-border px-2 py-2",
-        isOver ? "ring-2 ring-primary/30" : null
+        !disabled && isOver ? "ring-2 ring-primary/30" : null
       )}
     >
       {tiles.map((tile, i) => (

@@ -84,8 +84,13 @@ function GameSessionView({ roomId }: { roomId: string }) {
         <div className="@container-[size] flex min-h-0 w-full flex-1 items-center justify-center">
           <Board boardTiles={boardTiles} assignments={assignments} />
         </div>
-        <Button onClick={returnAll} variant="destructive">
-          {<Trash />}
+        <Button
+          onClick={returnAll}
+          variant="destructive"
+          disabled={Object.keys(assignments).length === 0}
+          aria-label="Clear all placements"
+        >
+          <Trash />
         </Button>
         <Rack tiles={rack} />
       </RoomLayout>

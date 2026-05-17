@@ -34,7 +34,7 @@ export default function Tile({
 
   return (
     <div
-      className="relative h-full w-full"
+      className="relative h-full w-full cursor-grab"
       ref={setNodeRef}
       style={style}
       {...listeners}
