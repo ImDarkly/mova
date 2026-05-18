@@ -21,3 +21,5 @@ export interface TileType {
 }
 
 export type TileAssignments = Partial<Record<number, number>>
+
+export type PlayerStatus = "ready" | "not-ready" | "your-turn" | "their-turn"

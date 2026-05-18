@@ -32,6 +32,9 @@ export function useGameSession(roomId: string) {
           case "ROOM_STATE":
             setPlayers(msg.players)
             break
+          case "GAME_START":
+            setCurrentTurn(msg.currentTurn)
+            break
         }
       } catch {
         console.log("non-JSON message:", event.data)

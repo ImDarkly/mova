@@ -101,6 +101,7 @@ export default class Server implements Party.Server {
         JSON.stringify({
           type: "GAME_START",
           roomId: this.room.id,
+          currentTurn: this.currentTurn,
         })
       )
     }
@@ -168,7 +169,7 @@ export default class Server implements Party.Server {
     }
 
     if (msg.type === "SUBMIT_TURN") {
-      if (sender.id === this.currentTurn) return
+      if (sender.id !== this.currentTurn) return
 
       this.refillRack(sender.id)
 
