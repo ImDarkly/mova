@@ -62,6 +62,20 @@ export default class Server implements Party.Server {
 
   constructor(readonly room: Party.Room) {}
 
+  advanceToNextConnectedPlayer() {
+    const len = this.playerOrder.length
+    if (len === 0) return
+    const start = this.playerOrder.indexOf(this.currentTurn)
+    for (let i = 1; i <= len; i++) {
+      const candidate = this.playerOrder[(start + i) % len]
+      const p = this.players[candidate]
+      if (p && p.connected) {
+        this.currentTurn = candidate
+        return
+      }
+    }
+  }
+
   onConnect(conn: Party.Connection) {
     const isReconnect = !!this.players[conn.id]
     if (!isReconnect) {
@@ -119,6 +133,17 @@ export default class Server implements Party.Server {
     if (this.gameStarted) {
       if (player) {
         player.connected = false
+
+        if (this.currentTurn === conn.id) {
+          this.advanceToNextConnectedPlayer()
+          this.room.broadcast(
+            JSON.stringify({
+              type: "TURN_CHANGE",
+              currentTurn: this.currentTurn,
+            })
+          )
+        }
+
         this.room.broadcast(
           JSON.stringify({
             type: "ROOM_STATE",
@@ -130,6 +155,7 @@ export default class Server implements Party.Server {
     }
 
     delete this.players[conn.id]
+    this.playerOrder = this.playerOrder.filter((id) => id !== conn.id)
 
     this.room.broadcast(
       JSON.stringify({
@@ -172,10 +198,7 @@ export default class Server implements Party.Server {
       if (sender.id !== this.currentTurn) return
 
       this.refillRack(sender.id)
-
-      const currentIndex = this.playerOrder.indexOf(this.currentTurn)
-      const nextIndex = (currentIndex + 1) % this.playerOrder.length
-      this.currentTurn = this.playerOrder[nextIndex]
+      this.advanceToNextConnectedPlayer()
 
       this.room.broadcast(
         JSON.stringify({
@@ -190,7 +213,10 @@ export default class Server implements Party.Server {
   startGame() {
     if (this.gameStarted) return
     this.gameStarted = true
-    this.currentTurn = this.playerOrder[0]
+
+    this.currentTurn =
+      this.playerOrder.find((id) => this.players[id]?.connected) ||
+      this.playerOrder[0]
 
     this.bag = shuffleBag(buildBag())
 

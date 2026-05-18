@@ -17,7 +17,7 @@ import {
   type DragStartEvent,
 } from "@dnd-kit/core"
 import { Check, Trash } from "lucide-react"
-import { useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router"
 
 function GameSessionView({ roomId }: { roomId: string }) {
@@ -33,11 +33,20 @@ function GameSessionView({ roomId }: { roomId: string }) {
   } = useTileAssignment(tiles)
   const [activeTile, setActiveTile] = useState<TileType | null>(null)
 
+  const isSubmittingRef = useRef(false)
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     })
   )
+
+  useEffect(() => {
+    if (!isMyTurn && isSubmittingRef.current) {
+      returnAll()
+      isSubmittingRef.current = false
+    }
+  }, [isMyTurn, returnAll])
 
   const handleDragStart = (event: DragStartEvent) => {
     const activeData = event.active.data.current as
@@ -75,8 +84,8 @@ function GameSessionView({ roomId }: { roomId: string }) {
   }
 
   const handleSubmitTurn = () => {
+    isSubmittingRef.current = true
     send({ type: "SUBMIT_TURN" })
-    returnAll()
   }
 
   return (
