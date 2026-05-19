@@ -8,7 +8,10 @@ export type ServerMessage =
 export type ClientMessage =
   | { type: "READY" }
   | { type: "UNREADY" }
-  | { type: "SUBMIT_TURN" }
+  | {
+      type: "SUBMIT_TURN"
+      placements: { rackIndex: number; cellIndex: number }[]
+    }
 
 export interface Player {
   id: string

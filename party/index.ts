@@ -58,14 +58,19 @@ export default class Server implements Party.Server {
   bag: Tile[] = []
   gameStarted = false
   playerOrder: string[] = []
-  currentTurn: string = ""
+  currentTurn: string | null = null
 
   constructor(readonly room: Party.Room) {}
 
   advanceToNextConnectedPlayer() {
     const len = this.playerOrder.length
-    if (len === 0) return
-    const start = this.playerOrder.indexOf(this.currentTurn)
+    if (len === 0) {
+      this.currentTurn = null
+      return
+    }
+    const start = this.currentTurn
+      ? this.playerOrder.indexOf(this.currentTurn)
+      : -1
     for (let i = 1; i <= len; i++) {
       const candidate = this.playerOrder[(start + i) % len]
       const p = this.players[candidate]
@@ -74,6 +79,7 @@ export default class Server implements Party.Server {
         return
       }
     }
+    this.currentTurn = null
   }
 
   onConnect(conn: Party.Connection) {
@@ -111,6 +117,19 @@ export default class Server implements Party.Server {
     }
 
     if (isReconnect && this.gameStarted) {
+      const turnPlayer = this.currentTurn
+        ? this.players[this.currentTurn]
+        : null
+      if (!turnPlayer || !turnPlayer.connected) {
+        this.advanceToNextConnectedPlayer()
+        this.room.broadcast(
+          JSON.stringify({
+            type: "TURN_CHANGE",
+            currentTurn: this.currentTurn,
+          })
+        )
+      }
+
       conn.send(
         JSON.stringify({
           type: "GAME_START",
@@ -197,6 +216,25 @@ export default class Server implements Party.Server {
     if (msg.type === "SUBMIT_TURN") {
       if (sender.id !== this.currentTurn) return
 
+      const player = this.players[sender.id]
+      const placements = (msg as Record<string, unknown>).placements
+
+      if (Array.isArray(placements)) {
+        const indicesToRemove = placements
+          .map((p) => p.rackIndex)
+          .filter((i) => typeof i === "number")
+          .sort((a: number, b: number) => b - a)
+
+        // Ensure we remove duplicates to prevent accidental shifting errors
+        const uniqueIndices = [...new Set(indicesToRemove)]
+
+        for (const index of uniqueIndices) {
+          if (index >= 0 && index < player.rack.length) {
+            player.rack.splice(index, 1)
+          }
+        }
+      }
+
       this.refillRack(sender.id)
       this.advanceToNextConnectedPlayer()
 
@@ -214,9 +252,10 @@ export default class Server implements Party.Server {
     if (this.gameStarted) return
     this.gameStarted = true
 
+    const fallbackId = this.playerOrder[0]
     this.currentTurn =
       this.playerOrder.find((id) => this.players[id]?.connected) ||
-      this.playerOrder[0]
+      (this.players[fallbackId]?.connected ? fallbackId : null)
 
     this.bag = shuffleBag(buildBag())
 
@@ -233,7 +272,11 @@ export default class Server implements Party.Server {
     }
 
     this.room.broadcast(
-      JSON.stringify({ type: "GAME_START", currentTurn: this.currentTurn })
+      JSON.stringify({
+        type: "GAME_START",
+        roomId: this.room.id,
+        currentTurn: this.currentTurn,
+      })
     )
   }
 

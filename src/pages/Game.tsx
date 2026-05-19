@@ -42,11 +42,11 @@ function GameSessionView({ roomId }: { roomId: string }) {
   )
 
   useEffect(() => {
-    if (!isMyTurn && isSubmittingRef.current) {
+    if (isSubmittingRef.current) {
       returnAll()
       isSubmittingRef.current = false
     }
-  }, [isMyTurn, returnAll])
+  }, [currentTurn, returnAll])
 
   const handleDragStart = (event: DragStartEvent) => {
     const activeData = event.active.data.current as
@@ -114,6 +114,7 @@ function GameSessionView({ roomId }: { roomId: string }) {
             variant="secondary"
             disabled={!isMyTurn || Object.keys(assignments).length === 0}
             onClick={handleSubmitTurn}
+            aria-label="Submit turn"
           >
             <Check />
           </Button>
