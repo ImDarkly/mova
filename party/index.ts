@@ -108,9 +108,12 @@ export default class Server implements Party.Server {
       return
     }
 
+    if (!this.players[sender.id] || typeof msg !== "object" || msg === null)
+      return
+
     const action = msg as { type?: string; placements?: unknown }
 
-    if (!this.players[sender.id] || !action.type) return
+    if (typeof action.type !== "string") return
 
     if (action.type === "READY" || action.type === "UNREADY") {
       this.handleReadyToggle(sender, action.type)
