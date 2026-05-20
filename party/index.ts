@@ -13,7 +13,12 @@ import {
   advanceToNextConnectedPlayer,
   findFirstConnectedPlayer,
 } from "./lib/turns"
-import { toPublicPlayer, type Player, type Tile } from "./lib/types"
+import {
+  isPlacement,
+  toPublicPlayer,
+  type Player,
+  type Tile,
+} from "./lib/types"
 
 export default class Server implements Party.Server {
   players: Record<string, Player> = {}
@@ -103,60 +108,14 @@ export default class Server implements Party.Server {
       return
     }
 
-    if (!this.players[sender.id]) return
-    if (typeof msg !== "object" || msg === null || !("type" in msg)) return
+    const action = msg as { type?: string; placements?: unknown }
 
-    if (msg.type === "READY" || msg.type === "UNREADY") {
-      this.players[sender.id].ready = msg.type === "READY"
-      const list = Object.values(this.players)
-      const allReady = list.length >= MIN_PLAYERS && list.every((p) => p.ready)
-      if (allReady) {
-        this.startGame()
-      } else {
-        broadcastRoomState(this.room, list.map(toPublicPlayer))
-      }
-    }
+    if (!this.players[sender.id] || !action.type) return
 
-    if (msg.type === "SUBMIT_TURN") {
-      if (sender.id !== this.currentTurn) return
-
-      const player = this.players[sender.id]
-      const raw = (msg as Record<string, unknown>).placements
-
-      if (Array.isArray(raw)) {
-        const indices = [
-          ...new Set(
-            raw
-              .filter(
-                (p): p is { rackIndex: number } =>
-                  p !== null &&
-                  typeof p === "object" &&
-                  "rackIndex" in p &&
-                  typeof (p as Record<string, unknown>).rackIndex === "number"
-              )
-              .map((p) => p.rackIndex)
-          ),
-        ].sort((a, b) => b - a)
-
-        for (const index of indices) {
-          if (index >= 0 && index < player.rack.length) {
-            player.rack.splice(index, 1)
-          }
-        }
-      }
-
-      const { rack, bag } = refillRack(player.rack, this.bag)
-      player.rack = rack
-      this.bag = bag
-      const conn = this.room.getConnection(sender.id)
-      if (conn) sendRack(conn, player.rack)
-
-      this.currentTurn = advanceToNextConnectedPlayer(
-        this.playerOrder,
-        this.players,
-        this.currentTurn
-      )
-      broadcastTurnChange(this.room, this.currentTurn)
+    if (action.type === "READY" || action.type === "UNREADY") {
+      this.handleReadyToggle(sender, action.type)
+    } else if (action.type === "SUBMIT_TURN") {
+      this.handleSubmitTurn(sender, action)
     }
   }
 
@@ -177,5 +136,68 @@ export default class Server implements Party.Server {
     }
 
     broadcastGameStart(this.room, this.currentTurn)
+  }
+
+  private handleSubmitTurn(
+    sender: Party.Connection,
+    msg: { placements?: unknown }
+  ) {
+    // Only the active player is allowed to submit a turn
+    if (sender.id !== this.currentTurn) return
+
+    const player = this.players[sender.id]
+    const indices = this.getValidatedRackIndices(msg.placements)
+
+    // Removing tiles from the end of the array first prevents index shifts
+    // from invalidating remaining indices in the sequence.
+    this.removeTilesFromRack(player, indices)
+
+    const { rack, bag } = refillRack(player.rack, this.bag)
+    player.rack = rack
+    this.bag = bag
+
+    this.room
+      .getConnection(sender.id)
+      ?.send(JSON.stringify({ type: "RACK", rack }))
+
+    this.currentTurn = advanceToNextConnectedPlayer(
+      this.playerOrder,
+      this.players,
+      this.currentTurn
+    )
+    broadcastTurnChange(this.room, this.currentTurn)
+  }
+
+  private getValidatedRackIndices(placements: unknown): number[] {
+    if (!Array.isArray(placements)) return []
+
+    // Deduplication is necessary because a player might accidentally
+    // submit the same rack index twice in a single turn.
+    return [
+      ...new Set(placements.filter(isPlacement).map((p) => p.rackIndex)),
+    ].sort((a, b) => b - a)
+  }
+
+  private handleReadyToggle(
+    sender: Party.Connection,
+    type: "READY" | "UNREADY"
+  ) {
+    this.players[sender.id].ready = type === "READY"
+    const list = Object.values(this.players)
+    const allReady = list.length >= MIN_PLAYERS && list.every((p) => p.ready)
+
+    if (allReady) {
+      this.startGame()
+    } else {
+      broadcastRoomState(this.room, list.map(toPublicPlayer))
+    }
+  }
+
+  private removeTilesFromRack(player: Player, indices: number[]) {
+    for (const index of indices) {
+      if (index >= 0 && index < player.rack.length) {
+        player.rack.splice(index, 1)
+      }
+    }
   }
 }
