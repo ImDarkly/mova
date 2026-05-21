@@ -24,15 +24,18 @@ export default function Board({ boardTiles, assignments }: BoardProps) {
           const row = Math.floor(i / BOARD_SIZE)
           const col = i % BOARD_SIZE
           const type = getCellType(row, col)
-          const rackIndex = Number(
-            Object.entries(assignments).find(
-              ([, cellIndex]) => cellIndex === i
-            )?.[0]
+          const rackIndexEntry = Object.entries(assignments).find(
+            ([, coord]) => coord && coord.row === row && coord.col === col
           )
+          const rackIndex = rackIndexEntry
+            ? Number(rackIndexEntry[0])
+            : undefined
+
           return (
             <div key={i} className="relative">
               <Cell
-                cellIndex={i}
+                row={row}
+                col={col}
                 variant={CELL_VARIANTS[type]}
                 label={CELL_LABELS[type]}
                 isOccupied={!!boardTiles[i]}

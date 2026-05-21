@@ -4,20 +4,22 @@ import { useDroppable } from "@dnd-kit/core"
 interface CellProps {
   variant: string
   label?: string
-  cellIndex: number
+  row: number
+  col: number
   isOccupied: boolean
 }
 
 export default function Cell({
   variant,
   label,
-  cellIndex,
+  row,
+  col,
   isOccupied,
 }: CellProps) {
   const { setNodeRef, isOver } = useDroppable({
-    id: `cell-${cellIndex}`,
+    id: `cell-${row}-${col}`,
     disabled: isOccupied,
-    data: { cellIndex },
+    data: { row, col },
   })
 
   return (
