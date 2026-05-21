@@ -10,7 +10,7 @@ export type ClientMessage =
   | { type: "UNREADY" }
   | {
       type: "SUBMIT_TURN"
-      placements: { rackIndex: number; cellIndex: number }[]
+      placements: { rackIndex: number; row: number; col: number }[]
     }
 
 export interface Player {
@@ -23,6 +23,11 @@ export interface TileType {
   points: number
 }
 
-export type TileAssignments = Partial<Record<number, number>>
+export type TileAssignments = Partial<Record<number, CellCoord>>
 
 export type PlayerStatus = "ready" | "not-ready" | "your-turn" | "their-turn"
+
+export interface CellCoord {
+  row: number
+  col: number
+}
