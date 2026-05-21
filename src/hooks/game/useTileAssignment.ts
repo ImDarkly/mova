@@ -1,4 +1,4 @@
-import type { TileAssignments, TileType } from "@/types/room"
+import type { CellCoord, TileAssignments, TileType } from "@/types/room"
 import { useState } from "react"
 
 export function useTileAssignment(initialTiles: TileType[]) {
@@ -22,21 +22,23 @@ export function useTileAssignment(initialTiles: TileType[]) {
     i in assignments ? null : tile
   )
 
-  const boardTiles: Partial<Record<number, TileType>> = Object.entries(
+  const boardTiles: Partial<Record<string, TileType>> = Object.entries(
     assignments
   ).reduce(
-    (acc, [rackIndex, cellIndex]) => {
-      const tile = initialTiles[Number(rackIndex)]
-      if (tile) acc[Number(cellIndex)] = tile
+    (acc, [rackIndex, coord]) => {
+      if (coord) {
+        const tile = initialTiles[Number(rackIndex)]
+        if (tile) acc[`${coord.row},${coord.col}`] = tile
+      }
       return acc
     },
-    {} as Partial<Record<number, TileType>>
+    {} as Partial<Record<string, TileType>>
   )
 
-  const assignTile = (rackIndex: number, cellIndex: number) => {
+  const assignTile = (rackIndex: number, coord: CellCoord) => {
     setAssignments((prev) => ({
       ...prev,
-      [rackIndex]: cellIndex,
+      [rackIndex]: coord,
     }))
   }
 
@@ -49,8 +51,11 @@ export function useTileAssignment(initialTiles: TileType[]) {
   }
 
   const returnAll = () => setAssignments({})
-  const isOccupied = (cellIndex: number) =>
-    Object.values(assignments).includes(cellIndex)
+  const isOccupied = (row: number, col: number) => {
+    return Object.values(assignments).some(
+      (coord) => coord && coord.row === row && coord.col === col
+    )
+  }
 
   return {
     assignments,
