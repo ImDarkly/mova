@@ -63,7 +63,9 @@ function GameSessionView({ roomId }: { roomId: string }) {
     if (!over || !active) return
 
     const activeData = active.data.current as { rackIndex?: number } | undefined
-    const overData = over.data.current as { cellIndex?: number } | undefined
+    const overData = over.data.current as
+      | { row?: number; col?: number }
+      | undefined
 
     if (over.id === "rack") {
       if (typeof activeData?.rackIndex != "number") return
@@ -71,11 +73,12 @@ function GameSessionView({ roomId }: { roomId: string }) {
     } else {
       if (
         typeof activeData?.rackIndex !== "number" ||
-        typeof overData?.cellIndex !== "number"
+        typeof overData?.row !== "number" ||
+        typeof overData?.col !== "number"
       )
         return
-      if (isOccupied(overData.cellIndex)) return
-      assignTile(activeData.rackIndex, overData.cellIndex)
+      if (isOccupied(overData.row, overData.col)) return
+      assignTile(activeData.rackIndex, { row: overData.row, col: overData.col })
     }
   }
 
@@ -85,7 +88,15 @@ function GameSessionView({ roomId }: { roomId: string }) {
 
   const handleSubmitTurn = () => {
     isSubmittingRef.current = true
-    send({ type: "SUBMIT_TURN" })
+
+    const placements = Object.entries(assignments).map(
+      ([rackIndex, coord]) => ({
+        rackIndex: Number(rackIndex),
+        ...coord,
+      })
+    )
+
+    send({ type: "SUBMIT_TURN", placements })
   }
 
   return (
