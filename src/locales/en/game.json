@@ -10,5 +10,8 @@
         "description": "The connection was interrupted. You have been returned to the home screen."
       }
     }
+  },
+  "labels": {
+    "you": "You"
   }
 }

@@ -1,78 +1,44 @@
 import type * as Party from "partykit/server"
+import { MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "./constants"
+import { buildBag, drawTiles, refillRack, shuffleBag } from "./lib/bag"
 import {
-  MAX_PLAYERS,
-  MIN_PLAYERS,
-  RACK_SIZE,
-  TILE_DISTRIBUTION,
-} from "./constants"
-
-interface Player {
-  id: string
-  ready: boolean
-  rack: Tile[]
-  connected: boolean
-}
-
-export interface Tile {
-  letter: string
-  points: number
-}
-
-function buildBag(): Tile[] {
-  const bag: Tile[] = []
-  for (const { letter, points, count } of TILE_DISTRIBUTION) {
-    for (let i = 0; i < count; i++) {
-      bag.push({ letter, points })
-    }
-  }
-  return bag
-}
-
-function shuffleBag(bag: Tile[]): Tile[] {
-  const shuffled = [...bag]
-  const rand = new Uint32Array(1)
-  for (let i = shuffled.length - 1; i > 0; i--) {
-    crypto.getRandomValues(rand)
-    const j = rand[0] % (i + 1)
-    ;[shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]]
-  }
-  return shuffled
-}
-
-function drawTiles(
-  bag: Tile[],
-  count: number
-): { drawn: Tile[]; remaining: Tile[] } {
-  const remaining = [...bag]
-  const drawn = remaining.splice(0, count)
-  return { drawn, remaining }
-}
-
-function toPublicPlayer(p: Player): Omit<Player, "rack"> {
-  const { rack: _, ...pub } = p
-  return pub
-}
+  broadcastGameStart,
+  broadcastRoomState,
+  broadcastTurnChange,
+  sendGameStart,
+  sendRack,
+  sendRoomFull,
+} from "./lib/messages"
+import {
+  advanceToNextConnectedPlayer,
+  findFirstConnectedPlayer,
+} from "./lib/turns"
+import {
+  isPlacement,
+  toPublicPlayer,
+  type Player,
+  type Tile,
+} from "./lib/types"
 
 export default class Server implements Party.Server {
   players: Record<string, Player> = {}
   bag: Tile[] = []
   gameStarted = false
+  playerOrder: string[] = []
+  currentTurn: string | null = null
 
   constructor(readonly room: Party.Room) {}
 
   onConnect(conn: Party.Connection) {
     const isReconnect = !!this.players[conn.id]
+
     if (!isReconnect) {
       if (this.gameStarted || Object.keys(this.players).length >= MAX_PLAYERS) {
-        conn.send(JSON.stringify({ type: "ROOM_FULL" }))
+        sendRoomFull(conn)
         conn.close()
         return
       }
-    }
-
-    const existing = this.players[conn.id]
-
-    if (!existing) {
+      this.playerOrder.push(conn.id)
       this.players[conn.id] = {
         id: conn.id,
         ready: false,
@@ -84,54 +50,53 @@ export default class Server implements Party.Server {
     const player = this.players[conn.id]
     player.connected = true
 
-    if (player.rack.length > 0) {
-      conn.send(
-        JSON.stringify({
-          type: "RACK_STATE",
-          tiles: player.rack,
-        })
-      )
-    }
+    if (player.rack.length > 0) sendRack(conn, player.rack)
 
     if (isReconnect && this.gameStarted) {
-      conn.send(
-        JSON.stringify({
-          type: "GAME_START",
-          roomId: this.room.id,
-        })
-      )
+      if (!this.players[this.currentTurn ?? ""]?.connected) {
+        this.currentTurn = advanceToNextConnectedPlayer(
+          this.playerOrder,
+          this.players,
+          this.currentTurn
+        )
+        broadcastTurnChange(this.room, this.currentTurn)
+      }
+      sendGameStart(conn, this.currentTurn)
     }
 
-    this.room.broadcast(
-      JSON.stringify({
-        type: "ROOM_STATE",
-        players: Object.values(this.players).map(toPublicPlayer),
-      })
+    broadcastRoomState(
+      this.room,
+      Object.values(this.players).map(toPublicPlayer)
     )
   }
 
   onClose(conn: Party.Connection) {
     const player = this.players[conn.id]
+
     if (this.gameStarted) {
       if (player) {
         player.connected = false
-        this.room.broadcast(
-          JSON.stringify({
-            type: "ROOM_STATE",
-            players: Object.values(this.players).map(toPublicPlayer),
-          })
+        if (this.currentTurn === conn.id) {
+          this.currentTurn = advanceToNextConnectedPlayer(
+            this.playerOrder,
+            this.players,
+            this.currentTurn
+          )
+          broadcastTurnChange(this.room, this.currentTurn)
+        }
+        broadcastRoomState(
+          this.room,
+          Object.values(this.players).map(toPublicPlayer)
         )
       }
       return
     }
 
     delete this.players[conn.id]
-
-    this.room.broadcast(
-      JSON.stringify({
-        type: "ROOM_STATE",
-        players: Object.values(this.players).map(toPublicPlayer),
-      })
+    this.playerOrder = this.playerOrder.filter((id) => id !== conn.id)
+    broadcastRoomState(
+      this.room,
+      Object.values(this.players).map(toPublicPlayer)
     )
   }
 
@@ -143,67 +108,99 @@ export default class Server implements Party.Server {
       return
     }
 
-    if (!this.players[sender.id]) return
-    if (typeof msg !== "object" || msg === null || !("type" in msg)) return
+    if (!this.players[sender.id] || typeof msg !== "object" || msg === null)
+      return
 
-    const ready =
-      msg.type === "READY" ? true : msg.type === "UNREADY" ? false : null
-    if (ready === null) return
+    const action = msg as { type?: string; placements?: unknown }
 
-    this.players[sender.id].ready = ready
+    if (typeof action.type !== "string") return
 
+    if (action.type === "READY" || action.type === "UNREADY") {
+      this.handleReadyToggle(sender, action.type)
+    } else if (action.type === "SUBMIT_TURN") {
+      this.handleSubmitTurn(sender, action)
+    }
+  }
+
+  startGame() {
+    if (this.gameStarted) return
+    this.gameStarted = true
+
+    this.currentTurn = findFirstConnectedPlayer(this.playerOrder, this.players)
+    this.bag = shuffleBag(buildBag())
+
+    for (const id in this.players) {
+      const player = this.players[id]
+      const { drawn, remaining } = drawTiles(this.bag, RACK_SIZE)
+      this.bag = remaining
+      player.rack = drawn
+      const conn = this.room.getConnection(id)
+      if (conn) sendRack(conn, drawn)
+    }
+
+    broadcastGameStart(this.room, this.currentTurn)
+  }
+
+  private handleSubmitTurn(
+    sender: Party.Connection,
+    msg: { placements?: unknown }
+  ) {
+    // Only the active player is allowed to submit a turn
+    if (sender.id !== this.currentTurn) return
+
+    const player = this.players[sender.id]
+    const indices = this.getValidatedRackIndices(msg.placements)
+
+    // Removing tiles from the end of the array first prevents index shifts
+    // from invalidating remaining indices in the sequence.
+    this.removeTilesFromRack(player, indices)
+
+    const { rack, bag } = refillRack(player.rack, this.bag)
+    player.rack = rack
+    this.bag = bag
+
+    this.room
+      .getConnection(sender.id)
+      ?.send(JSON.stringify({ type: "RACK", rack }))
+
+    this.currentTurn = advanceToNextConnectedPlayer(
+      this.playerOrder,
+      this.players,
+      this.currentTurn
+    )
+    broadcastTurnChange(this.room, this.currentTurn)
+  }
+
+  private getValidatedRackIndices(placements: unknown): number[] {
+    if (!Array.isArray(placements)) return []
+
+    // Deduplication is necessary because a player might accidentally
+    // submit the same rack index twice in a single turn.
+    return [
+      ...new Set(placements.filter(isPlacement).map((p) => p.rackIndex)),
+    ].sort((a, b) => b - a)
+  }
+
+  private handleReadyToggle(
+    sender: Party.Connection,
+    type: "READY" | "UNREADY"
+  ) {
+    this.players[sender.id].ready = type === "READY"
     const list = Object.values(this.players)
     const allReady = list.length >= MIN_PLAYERS && list.every((p) => p.ready)
 
     if (allReady) {
       this.startGame()
     } else {
-      this.room.broadcast(
-        JSON.stringify({
-          type: "ROOM_STATE",
-          players: list.map(toPublicPlayer),
-        })
-      )
+      broadcastRoomState(this.room, list.map(toPublicPlayer))
     }
   }
-  startGame() {
-    if (this.gameStarted) return
-    this.gameStarted = true
 
-    this.bag = shuffleBag(buildBag())
-
-    for (const id in this.players) {
-      const player = this.players[id]
-
-      const { drawn, remaining } = drawTiles(this.bag, RACK_SIZE)
-      this.bag = remaining
-      player.rack = drawn
-
-      this.room
-        .getConnection(id)
-        ?.send(JSON.stringify({ type: "RACK_STATE", tiles: drawn }))
+  private removeTilesFromRack(player: Player, indices: number[]) {
+    for (const index of indices) {
+      if (index >= 0 && index < player.rack.length) {
+        player.rack.splice(index, 1)
+      }
     }
-
-    this.room.broadcast(JSON.stringify({ type: "GAME_START" }))
-  }
-
-  refillRack(connId: string) {
-    const player = this.players[connId]
-    if (!player) return
-
-    const needed = RACK_SIZE - player.rack.length
-    if (needed <= 0 || this.bag.length === 0) return
-
-    const { drawn, remaining } = drawTiles(
-      this.bag,
-      Math.min(needed, this.bag.length)
-    )
-
-    this.bag = remaining
-    player.rack.push(...drawn)
-
-    this.room
-      .getConnection(connId)
-      ?.send(JSON.stringify({ type: "RACK_STATE", tiles: player.rack }))
   }
 }

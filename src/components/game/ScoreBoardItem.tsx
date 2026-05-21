@@ -4,29 +4,30 @@ import { Item, ItemContent, ItemTitle } from "../ui/item"
 import { Badge } from "../ui/badge"
 import { cn } from "@/lib/utils"
 
-interface PlayerItemProps {
+interface ScoreBoardItemProps {
   player: Player
   isMe: boolean
+  currentTurn?: string
 }
 
-export default function PlayerItem({ player, isMe }: PlayerItemProps) {
-  const { t } = useTranslation("room")
+export default function ScoreBoardItem({
+  player,
+  isMe,
+  currentTurn,
+}: ScoreBoardItemProps) {
+  const { t } = useTranslation("game")
+  const isTurnHolder = player.id === currentTurn
 
   return (
     <Item
-      variant={player.ready ? "muted" : "default"}
-      className={cn("w-auto", isMe ? "ring-2 ring-secondary" : null)}
+      variant={isMe ? "muted" : "default"}
+      className={cn("w-auto", isTurnHolder ? "ring-2 ring-primary" : null)}
     >
       <ItemContent>
         <ItemTitle>
           {player.id}
           {isMe && <Badge variant="outline">{t("labels.you")}</Badge>}
         </ItemTitle>
-      </ItemContent>
-      <ItemContent>
-        <Badge variant={player.ready ? "default" : "secondary"}>
-          {t(player.ready ? "player.ready" : "player.notReady")}
-        </Badge>
       </ItemContent>
     </Item>
   )

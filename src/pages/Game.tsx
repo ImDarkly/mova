@@ -1,5 +1,6 @@
 import Board from "@/components/game/Board"
 import Rack from "@/components/game/Rack"
+import ScoreBoardList from "@/components/game/ScoreBoardList"
 import Tile from "@/components/game/Tile"
 import RoomLayout from "@/components/room/RoomLayout"
 import { Button } from "@/components/ui/button"
@@ -15,12 +16,12 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core"
-import { Trash } from "lucide-react"
-import { useState } from "react"
+import { Check, Trash } from "lucide-react"
+import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router"
 
 function GameSessionView({ roomId }: { roomId: string }) {
-  const { tiles } = useGameSession(roomId)
+  const { tiles, players, currentTurn, isMyTurn, send } = useGameSession(roomId)
   const {
     rack,
     assignTile,
@@ -32,11 +33,20 @@ function GameSessionView({ roomId }: { roomId: string }) {
   } = useTileAssignment(tiles)
   const [activeTile, setActiveTile] = useState<TileType | null>(null)
 
+  const isSubmittingRef = useRef(false)
+
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     })
   )
+
+  useEffect(() => {
+    if (isSubmittingRef.current) {
+      returnAll()
+      isSubmittingRef.current = false
+    }
+  }, [currentTurn, returnAll])
 
   const handleDragStart = (event: DragStartEvent) => {
     const activeData = event.active.data.current as
@@ -73,6 +83,11 @@ function GameSessionView({ roomId }: { roomId: string }) {
     setActiveTile(null)
   }
 
+  const handleSubmitTurn = () => {
+    isSubmittingRef.current = true
+    send({ type: "SUBMIT_TURN" })
+  }
+
   return (
     <DndContext
       sensors={sensors}
@@ -81,18 +96,29 @@ function GameSessionView({ roomId }: { roomId: string }) {
       onDragCancel={handleDragCancel}
     >
       <RoomLayout roomId={roomId}>
+        <ScoreBoardList players={players} currentTurn={currentTurn} />
         <div className="@container-[size] flex min-h-0 w-full flex-1 items-center justify-center">
           <Board boardTiles={boardTiles} assignments={assignments} />
         </div>
-        <Button
-          onClick={returnAll}
-          variant="destructive"
-          disabled={Object.keys(assignments).length === 0}
-          aria-label="Clear all placements"
-        >
-          <Trash />
-        </Button>
-        <Rack tiles={rack} />
+        <div className="flex w-full items-center gap-2">
+          <Button
+            onClick={returnAll}
+            variant="destructive"
+            disabled={Object.keys(assignments).length === 0}
+            aria-label="Clear all placements"
+          >
+            <Trash />
+          </Button>
+          <Rack tiles={rack} disabled={!isMyTurn} />
+          <Button
+            variant="secondary"
+            disabled={!isMyTurn || Object.keys(assignments).length === 0}
+            onClick={handleSubmitTurn}
+            aria-label="Submit turn"
+          >
+            <Check />
+          </Button>
+        </div>
       </RoomLayout>
 
       <DragOverlay dropAnimation={null}>
