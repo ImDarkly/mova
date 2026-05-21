@@ -8,80 +8,83 @@ export type CellType =
   | "tripleWord"
   | "center"
 
-export const CELL_TYPES: Record<number, CellType> = {
-  // Triple word
-  0: "tripleWord",
-  7: "tripleWord",
-  14: "tripleWord",
-  105: "tripleWord",
-  119: "tripleWord",
-  210: "tripleWord",
-  217: "tripleWord",
-  224: "tripleWord",
+const CELL_TYPE_LIST: { row: number; col: number; type: CellType }[] = [
+  // Triple Word (8 locations)
+  { row: 0, col: 0, type: "tripleWord" },
+  { row: 0, col: 7, type: "tripleWord" },
+  { row: 0, col: 14, type: "tripleWord" },
+  { row: 7, col: 0, type: "tripleWord" },
+  { row: 7, col: 14, type: "tripleWord" },
+  { row: 14, col: 0, type: "tripleWord" },
+  { row: 14, col: 7, type: "tripleWord" },
+  { row: 14, col: 14, type: "tripleWord" },
 
-  // Double word
-  16: "doubleWord",
-  28: "doubleWord",
-  32: "doubleWord",
-  42: "doubleWord",
-  48: "doubleWord",
-  56: "doubleWord",
-  64: "doubleWord",
-  70: "doubleWord",
-  154: "doubleWord",
-  160: "doubleWord",
-  168: "doubleWord",
-  176: "doubleWord",
-  182: "doubleWord",
-  192: "doubleWord",
-  196: "doubleWord",
-  208: "doubleWord",
+  // Triple Letter (12 locations)
+  { row: 1, col: 5, type: "tripleLetter" },
+  { row: 1, col: 9, type: "tripleLetter" },
+  { row: 5, col: 1, type: "tripleLetter" },
+  { row: 5, col: 5, type: "tripleLetter" },
+  { row: 5, col: 9, type: "tripleLetter" },
+  { row: 5, col: 13, type: "tripleLetter" },
+  { row: 9, col: 1, type: "tripleLetter" },
+  { row: 9, col: 5, type: "tripleLetter" },
+  { row: 9, col: 9, type: "tripleLetter" },
+  { row: 9, col: 13, type: "tripleLetter" },
+  { row: 13, col: 5, type: "tripleLetter" },
+  { row: 13, col: 9, type: "tripleLetter" },
 
-  // Triple letter
-  20: "tripleLetter",
-  24: "tripleLetter",
-  76: "tripleLetter",
-  80: "tripleLetter",
-  84: "tripleLetter",
-  88: "tripleLetter",
-  136: "tripleLetter",
-  140: "tripleLetter",
-  144: "tripleLetter",
-  148: "tripleLetter",
-  200: "tripleLetter",
-  204: "tripleLetter",
+  // Double Word (17 locations, including center)
+  { row: 1, col: 1, type: "doubleWord" },
+  { row: 1, col: 13, type: "doubleWord" },
+  { row: 2, col: 2, type: "doubleWord" },
+  { row: 2, col: 12, type: "doubleWord" },
+  { row: 3, col: 3, type: "doubleWord" },
+  { row: 3, col: 11, type: "doubleWord" },
+  { row: 4, col: 4, type: "doubleWord" },
+  { row: 4, col: 10, type: "doubleWord" },
+  { row: 7, col: 7, type: "center" },
+  { row: 10, col: 4, type: "doubleWord" },
+  { row: 10, col: 10, type: "doubleWord" },
+  { row: 11, col: 3, type: "doubleWord" },
+  { row: 11, col: 11, type: "doubleWord" },
+  { row: 12, col: 2, type: "doubleWord" },
+  { row: 12, col: 12, type: "doubleWord" },
+  { row: 13, col: 1, type: "doubleWord" },
+  { row: 13, col: 13, type: "doubleWord" },
 
-  // Double letter
-  3: "doubleLetter",
-  11: "doubleLetter",
-  36: "doubleLetter",
-  38: "doubleLetter",
-  45: "doubleLetter",
-  52: "doubleLetter",
-  59: "doubleLetter",
-  92: "doubleLetter",
-  96: "doubleLetter",
-  98: "doubleLetter",
-  102: "doubleLetter",
-  108: "doubleLetter",
-  116: "doubleLetter",
-  126: "doubleLetter",
-  128: "doubleLetter",
-  132: "doubleLetter",
-  165: "doubleLetter",
-  172: "doubleLetter",
-  179: "doubleLetter",
-  186: "doubleLetter",
-  188: "doubleLetter",
-  213: "doubleLetter",
-  221: "doubleLetter",
+  // Double Letter (24 locations)
+  { row: 0, col: 3, type: "doubleLetter" },
+  { row: 0, col: 11, type: "doubleLetter" },
+  { row: 2, col: 6, type: "doubleLetter" },
+  { row: 2, col: 8, type: "doubleLetter" },
+  { row: 3, col: 0, type: "doubleLetter" },
+  { row: 3, col: 7, type: "doubleLetter" },
+  { row: 3, col: 14, type: "doubleLetter" },
+  { row: 6, col: 2, type: "doubleLetter" },
+  { row: 6, col: 6, type: "doubleLetter" },
+  { row: 6, col: 8, type: "doubleLetter" },
+  { row: 6, col: 12, type: "doubleLetter" },
+  { row: 7, col: 3, type: "doubleLetter" },
+  { row: 7, col: 11, type: "doubleLetter" },
+  { row: 8, col: 2, type: "doubleLetter" },
+  { row: 8, col: 6, type: "doubleLetter" },
+  { row: 8, col: 8, type: "doubleLetter" },
+  { row: 8, col: 12, type: "doubleLetter" },
+  { row: 11, col: 0, type: "doubleLetter" },
+  { row: 11, col: 7, type: "doubleLetter" },
+  { row: 11, col: 14, type: "doubleLetter" },
+  { row: 12, col: 6, type: "doubleLetter" },
+  { row: 12, col: 8, type: "doubleLetter" },
+  { row: 14, col: 3, type: "doubleLetter" },
+  { row: 14, col: 11, type: "doubleLetter" },
+]
 
-  // Center
-  112: "center",
-}
+const CELL_TYPE_MAP = new Map<string, CellType>(
+  CELL_TYPE_LIST.map(({ row, col, type }) => [`${row},${col}`, type])
+)
 
 export function getCellType(row: number, col: number): CellType {
-  return CELL_TYPES[row * BOARD_SIZE + col] ?? "normal"
+  return CELL_TYPE_MAP.get(`${row},${col}`) ?? "normal"
 }
 
 export const CELL_VARIANTS = {
