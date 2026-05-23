@@ -37,3 +37,5 @@ export const TILE_DISTRIBUTION: {
 ]
 
 export const RACK_SIZE = 7
+
+export const BOARD_SIZE = 15

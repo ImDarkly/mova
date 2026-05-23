@@ -1,5 +1,5 @@
 import type * as Party from "partykit/server"
-import { MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "./constants"
+import { BOARD_SIZE, MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "./constants"
 import { buildBag, drawTiles, refillRack, shuffleBag } from "./lib/bag"
 import {
   broadcastGameStart,
@@ -26,6 +26,9 @@ export default class Server implements Party.Server {
   gameStarted = false
   playerOrder: string[] = []
   currentTurn: string | null = null
+  board: (Tile | null)[][] = Array.from({ length: BOARD_SIZE }, () =>
+    Array.from({ length: BOARD_SIZE }, () => null)
+  )
 
   constructor(readonly room: Party.Room) {}
 
