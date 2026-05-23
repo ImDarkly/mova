@@ -18,18 +18,33 @@ export interface CellCoord {
 export type PublicPlayer = Omit<Player, "rack">
 
 export function toPublicPlayer(p: Player): PublicPlayer {
-  const { rack: _, ...pub } = p
+  const { rack: _rack, ...pub } = p
   return pub
 }
 
-export function isPlacement(p: unknown): p is { row: number; col: number } {
-  if (typeof p !== "object" || p === null || !("row" in p) || !("col" in p)) {
+export function isPlacement(
+  p: unknown
+): p is { rackIndex: number; row: number; col: number } {
+  if (
+    typeof p !== "object" ||
+    p === null ||
+    !("row" in p) ||
+    !("col" in p) ||
+    !("rackIndex" in p)
+  ) {
     return false
   }
 
-  const { row, col } = p as { row: unknown; col: unknown }
+  const { row, col, rackIndex } = p as {
+    row: unknown
+    col: unknown
+    rackIndex: unknown
+  }
 
   return (
+    typeof rackIndex === "number" &&
+    Number.isInteger(rackIndex) &&
+    rackIndex >= 0 &&
     typeof row === "number" &&
     Number.isInteger(row) &&
     row >= 0 &&
