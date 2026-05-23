@@ -1,5 +1,23 @@
 {
   "errors": {
+    "submit": {
+      "NO_TILES": {
+        "title": "No tiles placed",
+        "description": "Please place at least one tile on the board."
+      },
+      "NOT_IN_LINE": {
+        "title": "Invalid placement",
+        "description": "Tiles must be placed in a straight horizontal or vertical line."
+      },
+      "GAP_NOT_FILLED": {
+        "title": "Invalid gap",
+        "description": "Your tiles must connect to existing tiles or be placed contiguously without gaps."
+      },
+      "NOT_CONNECTED": {
+        "title": "Not connected",
+        "description": "Your word must connect to the existing board."
+      }
+    },
     "connection": {
       "failed": {
         "title": "Connection failed",

@@ -41,9 +41,19 @@ export function useGameSession(roomId: string) {
           case "BOARD_STATE":
             setBoardTiles(msg.board)
             break
-          case "SUBMIT_ERROR":
-            toast.error(t(`errors.submit.${msg.error}`))
+          case "SUBMIT_ERROR": {
+            const error = t(`errors.submit.${msg.error}`, {
+              returnObjects: true,
+            }) as {
+              title: string
+              description: string
+            }
+
+            toast.error(error.title, {
+              description: error.description,
+            })
             break
+          }
         }
       } catch {
         console.log("non-JSON message:", event.data)
