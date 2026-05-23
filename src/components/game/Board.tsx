@@ -46,6 +46,7 @@ export default function Board({ boardTiles, assignments }: BoardProps) {
                     tile={boardTiles[`${row},${col}`]!}
                     hidePoints
                     rackIndex={rackIndex}
+                    isPending={rackIndex !== undefined}
                   />
                 </div>
               )}

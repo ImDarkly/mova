@@ -6,7 +6,7 @@ import RoomLayout from "@/components/room/RoomLayout"
 import { Button } from "@/components/ui/button"
 import { useGameSession } from "@/hooks/game/useGameSession"
 import { useTileAssignment } from "@/hooks/game/useTileAssignment"
-import type { TileType } from "@/types/room"
+import type { TileType } from "@/types/game"
 import {
   DndContext,
   DragOverlay,
@@ -21,16 +21,18 @@ import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router"
 
 function GameSessionView({ roomId }: { roomId: string }) {
-  const { tiles, players, currentTurn, isMyTurn, send } = useGameSession(roomId)
+  const { tiles, players, currentTurn, isMyTurn, boardTiles, send } =
+    useGameSession(roomId)
   const {
     rack,
     assignTile,
-    boardTiles,
+    pendingTiles,
     returnTile,
     isOccupied,
     returnAll,
     assignments,
   } = useTileAssignment(tiles)
+  const mergedBoardTiles = { ...boardTiles, ...pendingTiles }
   const [activeTile, setActiveTile] = useState<TileType | null>(null)
 
   const isSubmittingRef = useRef(false)
@@ -109,7 +111,7 @@ function GameSessionView({ roomId }: { roomId: string }) {
       <RoomLayout roomId={roomId}>
         <ScoreBoardList players={players} currentTurn={currentTurn} />
         <div className="@container-[size] flex min-h-0 w-full flex-1 items-center justify-center">
-          <Board boardTiles={boardTiles} assignments={assignments} />
+          <Board boardTiles={mergedBoardTiles} assignments={assignments} />
         </div>
         <div className="flex w-full items-center gap-2">
           <Button

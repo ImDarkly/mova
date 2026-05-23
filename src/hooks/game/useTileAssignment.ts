@@ -22,7 +22,7 @@ export function useTileAssignment(initialTiles: TileType[]) {
     i in assignments ? null : tile
   )
 
-  const boardTiles: Partial<Record<string, TileType>> = Object.entries(
+  const pendingTiles: Partial<Record<string, TileType>> = Object.entries(
     assignments
   ).reduce(
     (acc, [rackIndex, coord]) => {
@@ -60,7 +60,7 @@ export function useTileAssignment(initialTiles: TileType[]) {
   return {
     assignments,
     rack,
-    boardTiles,
+    pendingTiles,
     assignTile,
     returnTile,
     returnAll,
