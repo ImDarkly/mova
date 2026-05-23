@@ -7,6 +7,11 @@ export type ServerMessage =
   | { type: "GAME_START"; roomId: string; currentTurn: string }
   | { type: "TURN_CHANGE"; currentTurn: string }
   | { type: "RACK_STATE"; tiles: TileType[] }
+  | { type: "BOARD_STATE"; board: Record<string, TileType> }
+  | {
+      type: "SUBMIT_ERROR"
+      error: "NO_TILES" | "NOT_IN_LINE" | "GAP_NOT_FILLED" | "NOT_CONNECTED"
+    }
 
 export type ClientMessage =
   | { type: "READY" }
