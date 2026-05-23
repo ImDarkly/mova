@@ -9,7 +9,7 @@ import Tile from "@/components/game/Tile"
 import type { TileAssignments, TileType } from "@/types/room"
 
 interface BoardProps {
-  boardTiles: Partial<Record<number, TileType>>
+  boardTiles: Partial<Record<string, TileType>>
   assignments: TileAssignments
 }
 
@@ -38,11 +38,15 @@ export default function Board({ boardTiles, assignments }: BoardProps) {
                 col={col}
                 variant={CELL_VARIANTS[type]}
                 label={CELL_LABELS[type]}
-                isOccupied={!!boardTiles[i]}
+                isOccupied={!!boardTiles[`${row},${col}`]}
               />
-              {boardTiles[i] && (
+              {boardTiles[`${row},${col}`] && (
                 <div className="absolute inset-0 flex h-full items-center justify-center">
-                  <Tile tile={boardTiles[i]} hidePoints rackIndex={rackIndex} />
+                  <Tile
+                    tile={boardTiles[`${row},${col}`]!}
+                    hidePoints
+                    rackIndex={rackIndex}
+                  />
                 </div>
               )}
             </div>
