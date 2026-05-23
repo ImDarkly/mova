@@ -6,7 +6,7 @@ import {
 } from "@/lib/board"
 import Cell from "@/components/game/Cell"
 import Tile from "@/components/game/Tile"
-import type { TileAssignments, TileType } from "@/types/room"
+import type { TileAssignments, TileType } from "@/types/game"
 
 interface BoardProps {
   boardTiles: Partial<Record<string, TileType>>

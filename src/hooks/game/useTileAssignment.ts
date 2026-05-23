@@ -1,4 +1,4 @@
-import type { CellCoord, TileAssignments, TileType } from "@/types/room"
+import type { CellCoord, TileAssignments, TileType } from "@/types/game"
 import { useState } from "react"
 
 export function useTileAssignment(initialTiles: TileType[]) {
