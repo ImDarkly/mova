@@ -68,7 +68,7 @@ export default class Server implements Party.Server {
         broadcastTurnChange(this.room, this.currentTurn)
       }
       sendGameStart(conn, this.currentTurn)
-      broadcastBoardState(this.room, this.board)
+      this.sendBoardState(conn, this.board)
     }
 
     broadcastRoomState(
@@ -225,5 +225,9 @@ export default class Server implements Party.Server {
         player.rack.splice(index, 1)
       }
     }
+  }
+
+  private sendBoardState(conn: Party.Connection, board: (Tile | null)[][]) {
+    conn.send(JSON.stringify({ type: "BOARD_STATE", board }))
   }
 }
