@@ -16,6 +16,18 @@
       "NOT_CONNECTED": {
         "title": "Not connected",
         "description": "Your word must connect to the existing board."
+      },
+      "OUT_OF_BOUNDS": {
+        "title": "Invalid placement",
+        "description": "One or more tiles were placed outside the board boundaries."
+      },
+      "CELL_OCCUPIED": {
+        "title": "Cell occupied",
+        "description": "One or more tiles overlap with tiles already on the board."
+      },
+      "DUPLICATE_COORDINATE": {
+        "title": "Duplicate placement",
+        "description": "You placed more than one tile in the same cell."
       }
     },
     "connection": {

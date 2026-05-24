@@ -5,7 +5,14 @@ type ValidationResult =
   | { valid: true }
   | {
       valid: false
-      error: "NO_TILES" | "NOT_IN_LINE" | "GAP_NOT_FILLED" | "NOT_CONNECTED"
+      error:
+        | "NO_TILES"
+        | "NOT_IN_LINE"
+        | "GAP_NOT_FILLED"
+        | "NOT_CONNECTED"
+        | "OUT_OF_BOUNDS"
+        | "CELL_OCCUPIED"
+        | "DUPLICATE_COORDINATE"
     }
 export type SubmitErrorCode = Extract<
   ValidationResult,
@@ -17,6 +24,21 @@ export function validatePlacements(
   board: (Tile | null)[][]
 ): ValidationResult {
   if (placements.length === 0) return { valid: false, error: "NO_TILES" }
+
+  const coords = new Set<string>()
+  for (const { row, col } of placements) {
+    if (row < 0 || row >= board.length || col < 0 || col >= board[0].length) {
+      return { valid: false, error: "OUT_OF_BOUNDS" }
+    }
+    if (board[row][col] !== null) {
+      return { valid: false, error: "CELL_OCCUPIED" }
+    }
+    const key = `${row},${col}`
+    if (coords.has(key)) {
+      return { valid: false, error: "DUPLICATE_COORDINATE" }
+    }
+    coords.add(key)
+  }
 
   if (placements.length > 1) {
     const lineResult = isInline(placements, board)
