@@ -7,6 +7,10 @@ type ValidationResult =
       valid: false
       error: "NO_TILES" | "NOT_IN_LINE" | "GAP_NOT_FILLED" | "NOT_CONNECTED"
     }
+export type SubmitErrorCode = Extract<
+  ValidationResult,
+  { valid: false }
+>["error"]
 
 export function validatePlacements(
   placements: Placement[],

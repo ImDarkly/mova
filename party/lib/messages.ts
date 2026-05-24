@@ -1,5 +1,6 @@
 import type * as Party from "partykit/server"
 import type { PublicPlayer, Tile } from "./types"
+import type { SubmitErrorCode } from "./validation"
 
 export function broadcastRoomState(room: Party.Room, players: PublicPlayer[]) {
   room.broadcast(JSON.stringify({ type: "ROOM_STATE", players }))
@@ -51,6 +52,9 @@ export function broadcastBoardState(
   room.broadcast(JSON.stringify({ type: "BOARD_STATE", board: flat }))
 }
 
-export function sendSubmitError(conn: Party.Connection, error: string) {
+export function sendSubmitError(
+  conn: Party.Connection,
+  error: SubmitErrorCode
+) {
   conn.send(JSON.stringify({ type: "SUBMIT_ERROR", error }))
 }
