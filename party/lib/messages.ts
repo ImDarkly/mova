@@ -46,9 +46,9 @@ export function broadcastBoardState(
       if (tile !== null) {
         flat[`${row},${col}`] = tile
       }
-      room.broadcast(JSON.stringify({ type: "BOARD_STATE", board: flat }))
     }
   }
+  room.broadcast(JSON.stringify({ type: "BOARD_STATE", board: flat }))
 }
 
 export function sendSubmitError(conn: Party.Connection, error: string) {
