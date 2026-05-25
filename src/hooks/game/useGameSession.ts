@@ -42,16 +42,16 @@ export function useGameSession(roomId: string) {
             setBoardTiles(msg.board)
             break
           case "SUBMIT_ERROR": {
-            const error = t(`errors.submit.${msg.error}`, {
-              returnObjects: true,
-            }) as {
-              title: string
-              description: string
-            }
+            const title = t(
+              `errors.submit.${msg.error}.title`,
+              "Submission Error"
+            )
+            const description = t(
+              `errors.submit.${msg.error}.description`,
+              "An error occurred while submitting."
+            )
 
-            toast.error(error.title, {
-              description: error.description,
-            })
+            toast.error(title, { description })
             break
           }
         }

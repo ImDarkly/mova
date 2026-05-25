@@ -33,7 +33,7 @@ const CELL_TYPE_LIST: { row: number; col: number; type: CellType }[] = [
   { row: 13, col: 5, type: "tripleLetter" },
   { row: 13, col: 9, type: "tripleLetter" },
 
-  // Double Word (17 locations, including center)
+  // Double Word (16 locations; center is separate)
   { row: 1, col: 1, type: "doubleWord" },
   { row: 1, col: 13, type: "doubleWord" },
   { row: 2, col: 2, type: "doubleWord" },
