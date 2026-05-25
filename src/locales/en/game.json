@@ -11,7 +11,7 @@
       },
       "GAP_NOT_FILLED": {
         "title": "Invalid gap",
-        "description": "Your tiles must connect to existing tiles or be placed contiguously without gaps."
+        "description": "Tiles must connect to existing tiles and be placed contiguously (no gaps)."
       },
       "NOT_CONNECTED": {
         "title": "Not connected",
