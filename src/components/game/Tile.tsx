@@ -1,5 +1,5 @@
 import { cn } from "@/lib/utils"
-import type { TileType } from "@/types/room"
+import type { TileType } from "@/types/game"
 import { useDraggable } from "@dnd-kit/core"
 import { CSS } from "@dnd-kit/utilities"
 
@@ -11,6 +11,7 @@ interface TileProps {
   rackIndex?: number
   disabled?: boolean
   hidePoints?: boolean
+  isPending?: boolean
 }
 
 export default function Tile({
@@ -18,6 +19,7 @@ export default function Tile({
   rackIndex,
   disabled,
   hidePoints,
+  isPending,
 }: TileProps) {
   const isStatic = rackIndex === undefined
 
@@ -42,13 +44,12 @@ export default function Tile({
     >
       <div
         className={cn(
-          "absolute inset-[6%] flex items-center justify-center rounded-[12%] bg-card shadow-sm ring-1 ring-border",
-          !isStatic && isDragging && "opacity-0"
+          "absolute inset-[6%] flex items-center justify-center rounded-[12%] shadow-sm ring-1 ring-border",
+          !isStatic && isDragging && "opacity-0",
+          isPending ? "bg-accent text-accent-foreground" : "bg-card"
         )}
       >
-        <span className={cn("font-bold text-foreground", LETTER_SIZE)}>
-          {tile.letter}
-        </span>
+        <span className={cn("font-bold", LETTER_SIZE)}>{tile.letter}</span>
         {!hidePoints && (
           <span
             className={cn(

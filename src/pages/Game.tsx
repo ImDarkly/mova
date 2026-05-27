@@ -6,7 +6,7 @@ import RoomLayout from "@/components/room/RoomLayout"
 import { Button } from "@/components/ui/button"
 import { useGameSession } from "@/hooks/game/useGameSession"
 import { useTileAssignment } from "@/hooks/game/useTileAssignment"
-import type { TileType } from "@/types/room"
+import type { TileType } from "@/types/game"
 import {
   DndContext,
   DragOverlay,
@@ -21,16 +21,18 @@ import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router"
 
 function GameSessionView({ roomId }: { roomId: string }) {
-  const { tiles, players, currentTurn, isMyTurn, send } = useGameSession(roomId)
+  const { tiles, players, currentTurn, isMyTurn, boardTiles, send } =
+    useGameSession(roomId)
   const {
     rack,
     assignTile,
-    boardTiles,
+    pendingTiles,
     returnTile,
     isOccupied,
     returnAll,
     assignments,
   } = useTileAssignment(tiles)
+  const mergedBoardTiles = { ...boardTiles, ...pendingTiles }
   const [activeTile, setActiveTile] = useState<TileType | null>(null)
 
   const isSubmittingRef = useRef(false)
@@ -63,7 +65,9 @@ function GameSessionView({ roomId }: { roomId: string }) {
     if (!over || !active) return
 
     const activeData = active.data.current as { rackIndex?: number } | undefined
-    const overData = over.data.current as { cellIndex?: number } | undefined
+    const overData = over.data.current as
+      | { row?: number; col?: number }
+      | undefined
 
     if (over.id === "rack") {
       if (typeof activeData?.rackIndex != "number") return
@@ -71,11 +75,13 @@ function GameSessionView({ roomId }: { roomId: string }) {
     } else {
       if (
         typeof activeData?.rackIndex !== "number" ||
-        typeof overData?.cellIndex !== "number"
+        typeof overData?.row !== "number" ||
+        typeof overData?.col !== "number"
       )
         return
-      if (isOccupied(overData.cellIndex)) return
-      assignTile(activeData.rackIndex, overData.cellIndex)
+      const coordKey = `${overData.row},${overData.col}`
+      if (isOccupied(overData.row, overData.col) || boardTiles[coordKey]) return
+      assignTile(activeData.rackIndex, { row: overData.row, col: overData.col })
     }
   }
 
@@ -85,7 +91,16 @@ function GameSessionView({ roomId }: { roomId: string }) {
 
   const handleSubmitTurn = () => {
     isSubmittingRef.current = true
-    send({ type: "SUBMIT_TURN" })
+
+    const placements = Object.entries(assignments)
+      .filter(([, coord]) => coord != null)
+      .map(([rackIndex, coord]) => ({
+        rackIndex: Number(rackIndex),
+        row: coord!.row,
+        col: coord!.col,
+      }))
+
+    send({ type: "SUBMIT_TURN", placements })
   }
 
   return (
@@ -98,7 +113,7 @@ function GameSessionView({ roomId }: { roomId: string }) {
       <RoomLayout roomId={roomId}>
         <ScoreBoardList players={players} currentTurn={currentTurn} />
         <div className="@container-[size] flex min-h-0 w-full flex-1 items-center justify-center">
-          <Board boardTiles={boardTiles} assignments={assignments} />
+          <Board boardTiles={mergedBoardTiles} assignments={assignments} />
         </div>
         <div className="flex w-full items-center gap-2">
           <Button

@@ -1,13 +1,15 @@
 import type * as Party from "partykit/server"
-import { MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "./constants"
+import { BOARD_SIZE, MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "./constants"
 import { buildBag, drawTiles, refillRack, shuffleBag } from "./lib/bag"
 import {
+  broadcastBoardState,
   broadcastGameStart,
   broadcastRoomState,
   broadcastTurnChange,
   sendGameStart,
   sendRack,
   sendRoomFull,
+  sendSubmitError,
 } from "./lib/messages"
 import {
   advanceToNextConnectedPlayer,
@@ -19,6 +21,7 @@ import {
   type Player,
   type Tile,
 } from "./lib/types"
+import { validatePlacements } from "./lib/validation"
 
 export default class Server implements Party.Server {
   players: Record<string, Player> = {}
@@ -26,6 +29,9 @@ export default class Server implements Party.Server {
   gameStarted = false
   playerOrder: string[] = []
   currentTurn: string | null = null
+  board: (Tile | null)[][] = Array.from({ length: BOARD_SIZE }, () =>
+    Array.from({ length: BOARD_SIZE }, () => null)
+  )
 
   constructor(readonly room: Party.Room) {}
 
@@ -62,6 +68,7 @@ export default class Server implements Party.Server {
         broadcastTurnChange(this.room, this.currentTurn)
       }
       sendGameStart(conn, this.currentTurn)
+      this.sendBoardState(conn, this.board)
     }
 
     broadcastRoomState(
@@ -149,6 +156,20 @@ export default class Server implements Party.Server {
     if (sender.id !== this.currentTurn) return
 
     const player = this.players[sender.id]
+    const placements = Array.isArray(msg.placements)
+      ? msg.placements.filter(isPlacement)
+      : []
+
+    const result = validatePlacements(placements, this.board)
+    if (!result.valid) {
+      sendSubmitError(sender, result.error)
+      return
+    }
+
+    for (const { row, col, rackIndex } of placements) {
+      this.board[row][col] = player.rack[rackIndex]
+    }
+
     const indices = this.getValidatedRackIndices(msg.placements)
 
     // Removing tiles from the end of the array first prevents index shifts
@@ -161,7 +182,9 @@ export default class Server implements Party.Server {
 
     this.room
       .getConnection(sender.id)
-      ?.send(JSON.stringify({ type: "RACK", rack }))
+      ?.send(JSON.stringify({ type: "RACK_STATE", tiles: rack }))
+
+    broadcastBoardState(this.room, this.board)
 
     this.currentTurn = advanceToNextConnectedPlayer(
       this.playerOrder,
@@ -202,5 +225,9 @@ export default class Server implements Party.Server {
         player.rack.splice(index, 1)
       }
     }
+  }
+
+  private sendBoardState(conn: Party.Connection, board: (Tile | null)[][]) {
+    conn.send(JSON.stringify({ type: "BOARD_STATE", board }))
   }
 }

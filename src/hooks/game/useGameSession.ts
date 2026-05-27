@@ -1,5 +1,7 @@
 import { getClientId } from "@/lib/clientId"
-import type { Player, ServerMessage, TileType } from "@/types/room"
+import type { TileType } from "@/types/game"
+import type { ServerMessage } from "@/types/messages"
+import type { Player } from "@/types/room"
 import usePartySocket from "partysocket/react"
 import { useCallback, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
@@ -14,6 +16,7 @@ export function useGameSession(roomId: string) {
   const myId = getClientId()
   const [currentTurn, setCurrentTurn] = useState<string>("")
   const [players, setPlayers] = useState<Player[]>([])
+  const [boardTiles, setBoardTiles] = useState<Record<string, TileType>>({})
 
   const socket = usePartySocket({
     host: import.meta.env.VITE_PARTYKIT_HOST ?? "localhost:1999",
@@ -35,6 +38,22 @@ export function useGameSession(roomId: string) {
           case "GAME_START":
             setCurrentTurn(msg.currentTurn)
             break
+          case "BOARD_STATE":
+            setBoardTiles(msg.board)
+            break
+          case "SUBMIT_ERROR": {
+            const title = t(
+              `errors.submit.${msg.error}.title`,
+              "Submission Error"
+            )
+            const description = t(
+              `errors.submit.${msg.error}.description`,
+              "An error occurred while submitting."
+            )
+
+            toast.error(title, { description })
+            break
+          }
         }
       } catch {
         console.log("non-JSON message:", event.data)
@@ -64,5 +83,5 @@ export function useGameSession(roomId: string) {
 
   const isMyTurn = currentTurn === myId
 
-  return { tiles, players, currentTurn, isMyTurn, send }
+  return { tiles, players, currentTurn, isMyTurn, boardTiles, send }
 }
