@@ -92,12 +92,13 @@ function GameSessionView({ roomId }: { roomId: string }) {
   const handleSubmitTurn = () => {
     isSubmittingRef.current = true
 
-    const placements = Object.entries(assignments).map(
-      ([rackIndex, coord]) => ({
+    const placements = Object.entries(assignments)
+      .filter(([, coord]) => coord != null)
+      .map(([rackIndex, coord]) => ({
         rackIndex: Number(rackIndex),
-        ...coord,
-      })
-    )
+        row: coord!.row,
+        col: coord!.col,
+      }))
 
     send({ type: "SUBMIT_TURN", placements })
   }
