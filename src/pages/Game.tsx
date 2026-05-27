@@ -79,7 +79,8 @@ function GameSessionView({ roomId }: { roomId: string }) {
         typeof overData?.col !== "number"
       )
         return
-      if (isOccupied(overData.row, overData.col)) return
+      const coordKey = `${overData.row},${overData.col}`
+      if (isOccupied(overData.row, overData.col) || boardTiles[coordKey]) return
       assignTile(activeData.rackIndex, { row: overData.row, col: overData.col })
     }
   }
