@@ -19,7 +19,7 @@ export function useGameSession(roomId: string) {
   const [boardTiles, setBoardTiles] = useState<Record<string, TileType>>({})
 
   const socket = usePartySocket({
-    host: import.meta.env.VITE_PARTYKIT_HOST ?? "localhost:1999",
+    host: `${window.location.hostname}:1999`,
     room: roomId,
     id: myId,
     onMessage(event) {
