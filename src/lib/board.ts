@@ -96,13 +96,4 @@ export const CELL_VARIANTS = {
   center: "bg-primary/10 text-primary/70",
 } as const satisfies Record<CellType, string>
 
-export const CELL_LABELS: Record<CellType, string> = {
-  normal: "",
-  doubleLetter: "DL",
-  tripleLetter: "TL",
-  doubleWord: "DW",
-  tripleWord: "TW",
-  center: "★",
-}
-
 export type CellVariant = (typeof CELL_VARIANTS)[CellType]

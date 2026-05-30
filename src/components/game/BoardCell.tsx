@@ -1,7 +1,8 @@
-import { CELL_LABELS, CELL_VARIANTS, getCellType } from "@/lib/board"
+import { CELL_VARIANTS, getCellType } from "@/lib/board"
 import type { TileType } from "@/types/game"
 import Cell from "./Cell"
 import Tile from "./Tile"
+import { useTranslation } from "react-i18next"
 
 interface BoardCellProps {
   row: number
@@ -17,13 +18,16 @@ export default function BoardCell({
   rackIndex,
 }: BoardCellProps) {
   const type = getCellType(row, col)
+  const { t } = useTranslation("board")
+  const label = type === "normal" ? "" : t(`cellLabels.${type}`)
+
   return (
     <div className="relative">
       <Cell
         row={row}
         col={col}
         variant={CELL_VARIANTS[type]}
-        label={CELL_LABELS[type]}
+        label={label}
         isOccupied={!!boardTile}
       />
       {boardTile && (
