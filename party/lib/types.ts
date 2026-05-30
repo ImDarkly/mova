@@ -8,6 +8,7 @@ export interface Player {
   ready: boolean
   rack: Tile[]
   connected: boolean
+  score: number
 }
 
 export interface CellCoord {
