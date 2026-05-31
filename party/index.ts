@@ -148,7 +148,7 @@ export default class Server implements Party.Server {
       if (conn) sendRack(conn, drawn)
     }
 
-    broadcastGameStart(this.room, this.currentTurn)
+    broadcastGameStart(this.room, this.currentTurn, this.getScores())
   }
 
   private handleSubmitTurn(
@@ -173,6 +173,7 @@ export default class Server implements Party.Server {
       this.board[row][col] = player.rack[rackIndex]
     }
 
+    const uniqueRackIndices = [...new Set(placements.map((p) => p.rackIndex))]
     const turnScore = placements.reduce((sum, { rackIndex }) => {
       return sum + (player.rack[rackIndex]?.points ?? 0)
     }, 0)

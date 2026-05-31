@@ -60,8 +60,13 @@ export function useRoomSession(roomId: string) {
 
   const send = (data: object): boolean => {
     if (socket.readyState !== WebSocket.OPEN) return false
-    socket.send(JSON.stringify(data))
-    return true
+    try {
+      socket.send(JSON.stringify(data))
+      return true
+    } catch (error) {
+      console.error("Failed to send message:", error)
+      return false
+    }
   }
 
   return { players, send }

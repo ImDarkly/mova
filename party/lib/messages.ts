@@ -16,9 +16,10 @@ export function broadcastTurnChange(
 
 export function broadcastGameStart(
   room: Party.Room,
-  currentTurn: string | null
+  currentTurn: string | null,
+  scores: Record<string, number>
 ) {
-  room.broadcast(JSON.stringify({ type: "GAME_START", currentTurn }))
+  room.broadcast(JSON.stringify({ type: "GAME_START", currentTurn, scores }))
 }
 
 export function sendRack(conn: Party.Connection, tiles: Tile[]) {
