@@ -8,12 +8,14 @@ interface ScoreBoardItemProps {
   player: Player
   isMe: boolean
   currentTurn?: string
+  score: number
 }
 
 export default function ScoreBoardItem({
   player,
   isMe,
   currentTurn,
+  score,
 }: ScoreBoardItemProps) {
   const { t } = useTranslation("game")
   const isTurnHolder = player.id === currentTurn
@@ -28,6 +30,9 @@ export default function ScoreBoardItem({
           {player.id}
           {isMe && <Badge variant="outline">{t("labels.you")}</Badge>}
         </ItemTitle>
+      </ItemContent>
+      <ItemContent>
+        <span>{score}</span>
       </ItemContent>
     </Item>
   )

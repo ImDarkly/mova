@@ -4,8 +4,13 @@ import type { Player } from "./room"
 export type ServerMessage =
   | { type: "ROOM_STATE"; players: Player[] }
   | { type: "ROOM_FULL" }
-  | { type: "GAME_START"; currentTurn: string; roomId?: string }
-  | { type: "TURN_CHANGE"; currentTurn: string }
+  | {
+      type: "GAME_START"
+      currentTurn: string
+      roomId?: string
+      scores: Record<string, number>
+    }
+  | { type: "TURN_CHANGE"; currentTurn: string; scores: Record<string, number> }
   | { type: "RACK_STATE"; tiles: TileType[] }
   | { type: "BOARD_STATE"; board: Record<string, TileType> }
   | {

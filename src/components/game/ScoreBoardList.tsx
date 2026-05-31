@@ -2,15 +2,17 @@ import type { Player } from "@/types/room"
 import ScoreBoardItem from "./ScoreBoardItem"
 import { getClientId } from "@/lib/clientId"
 
-interface ScoreBoardItemProps {
+interface ScoreBoardListProps {
   players: Player[]
   currentTurn?: string
+  scores: Record<string, number>
 }
 
 export default function ScoreBoardList({
   players,
   currentTurn,
-}: ScoreBoardItemProps) {
+  scores,
+}: ScoreBoardListProps) {
   const myId = getClientId()
 
   return (
@@ -22,6 +24,7 @@ export default function ScoreBoardList({
             player={player}
             isMe={myId === player.id}
             currentTurn={currentTurn}
+            score={scores[player.id] ?? 0}
           />
         )
       })}
