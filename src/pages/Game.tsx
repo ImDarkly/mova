@@ -121,10 +121,14 @@ function GameSessionView({ roomId }: { roomId: string }) {
     return (
       <div className="flex flex-col items-center justify-center gap-6">
         <h1 className="font-heading text-2xl font-medium">
-          {isTie ? "It's a tie!" : isWinner ? "You win!" : "You lose!"}
+          {isTie && isWinner
+            ? "It's a tie!"
+            : isWinner
+              ? "You win!"
+              : "You lose!"}
         </h1>
         <div className="flex flex-col gap-1">
-          {players
+          {[...players]
             .sort(
               (a, b) =>
                 (gameOver.scores[b.id] ?? 0) - (gameOver.scores[a.id] ?? 0)

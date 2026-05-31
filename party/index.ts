@@ -29,6 +29,7 @@ export default class Server implements Party.Server {
   bag: Tile[] = []
   gameStarted = false
   gameOver = false
+  winnerIds: string[] = []
   playerOrder: string[] = []
   currentTurn: string | null = null
   board: (Tile | null)[][] = Array.from({ length: BOARD_SIZE }, () =>
@@ -62,6 +63,17 @@ export default class Server implements Party.Server {
     if (player.rack.length > 0) sendRack(conn, player.rack)
 
     if (isReconnect && this.gameStarted) {
+      if (this.gameOver) {
+        conn.send(
+          JSON.stringify({
+            type: "GAME_OVER",
+            winnerIds: this.winnerIds,
+            scores: this.getScores(),
+          })
+        )
+        return
+      }
+
       const scores = this.getScores()
       if (!this.players[this.currentTurn ?? ""]?.connected) {
         this.currentTurn = advanceToNextConnectedPlayer(
@@ -72,15 +84,6 @@ export default class Server implements Party.Server {
         broadcastTurnChange(this.room, this.currentTurn, scores)
       }
       sendGameStart(conn, this.currentTurn, scores)
-      if (this.gameOver) {
-        const scores = this.getScores()
-        const maxScore = Math.max(...Object.values(scores))
-        const winnerIds = Object.entries(scores)
-          .filter(([, s]) => s === maxScore)
-          .map(([id]) => id)
-        conn.send(JSON.stringify({ type: "GAME_OVER", winnerIds, scores }))
-        return
-      }
       this.sendBoardState(conn, this.board)
     }
 
@@ -184,7 +187,6 @@ export default class Server implements Party.Server {
       this.board[row][col] = player.rack[rackIndex]
     }
 
-    const uniqueRackIndices = [...new Set(placements.map((p) => p.rackIndex))]
     const turnScore = placements.reduce((sum, { rackIndex }) => {
       return sum + (player.rack[rackIndex]?.points ?? 0)
     }, 0)
@@ -264,9 +266,9 @@ export default class Server implements Party.Server {
     this.gameOver = true
     const scores = this.getScores()
     const maxScore = Math.max(...Object.values(scores))
-    const winnerIds = Object.entries(scores)
+    this.winnerIds = Object.entries(scores)
       .filter(([, s]) => s === maxScore)
       .map(([id]) => id)
-    broadcastGameOver(this.room, winnerIds, scores)
+    broadcastGameOver(this.room, this.winnerIds, scores)
   }
 }
