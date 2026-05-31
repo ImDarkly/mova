@@ -17,6 +17,7 @@ export function useGameSession(roomId: string) {
   const [currentTurn, setCurrentTurn] = useState<string>("")
   const [players, setPlayers] = useState<Player[]>([])
   const [boardTiles, setBoardTiles] = useState<Record<string, TileType>>({})
+  const [scores, setScores] = useState<Record<string, number>>({})
 
   const socket = usePartySocket({
     host: `${window.location.hostname}:1999`,
@@ -31,12 +32,14 @@ export function useGameSession(roomId: string) {
             break
           case "TURN_CHANGE":
             setCurrentTurn(msg.currentTurn)
+            setScores(msg.scores)
             break
           case "ROOM_STATE":
             setPlayers(msg.players)
             break
           case "GAME_START":
             setCurrentTurn(msg.currentTurn)
+            setScores(msg.scores)
             break
           case "BOARD_STATE":
             setBoardTiles(msg.board)
@@ -83,5 +86,5 @@ export function useGameSession(roomId: string) {
 
   const isMyTurn = currentTurn === myId
 
-  return { tiles, players, currentTurn, isMyTurn, boardTiles, send }
+  return { tiles, players, currentTurn, isMyTurn, boardTiles, send, scores }
 }

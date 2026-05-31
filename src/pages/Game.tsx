@@ -21,7 +21,7 @@ import { useEffect, useRef, useState } from "react"
 import { useParams } from "react-router"
 
 function GameSessionView({ roomId }: { roomId: string }) {
-  const { tiles, players, currentTurn, isMyTurn, boardTiles, send } =
+  const { tiles, players, currentTurn, isMyTurn, boardTiles, send, scores } =
     useGameSession(roomId)
   const {
     rack,
@@ -111,7 +111,11 @@ function GameSessionView({ roomId }: { roomId: string }) {
       onDragCancel={handleDragCancel}
     >
       <RoomLayout roomId={roomId}>
-        <ScoreBoardList players={players} currentTurn={currentTurn} />
+        <ScoreBoardList
+          players={players}
+          currentTurn={currentTurn}
+          scores={scores}
+        />
         <div className="@container-[size] flex min-h-0 w-full flex-1 items-center justify-center">
           <Board boardTiles={mergedBoardTiles} assignments={assignments} />
         </div>
