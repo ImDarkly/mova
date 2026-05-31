@@ -6,6 +6,7 @@ import type { Player } from "@/types/room"
 import usePartySocket from "partysocket/react"
 import { getClientId } from "@/lib/clientId"
 import type { ServerMessage } from "@/types/messages"
+import { WebSocket } from "partysocket"
 
 export function useRoomSession(roomId: string) {
   const { t } = useTranslation("room")
@@ -57,7 +58,16 @@ export function useRoomSession(roomId: string) {
     },
   })
 
-  const send = (data: object) => socket.send(JSON.stringify(data))
+  const send = (data: object): boolean => {
+    if (socket.readyState !== WebSocket.OPEN) return false
+    try {
+      socket.send(JSON.stringify(data))
+      return true
+    } catch (error) {
+      console.error("Failed to send message:", error)
+      return false
+    }
+  }
 
   return { players, send }
 }

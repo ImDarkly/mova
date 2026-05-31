@@ -50,6 +50,7 @@ export default class Server implements Party.Server {
         ready: false,
         rack: [],
         connected: true,
+        score: 0,
       }
     }
 
@@ -59,15 +60,16 @@ export default class Server implements Party.Server {
     if (player.rack.length > 0) sendRack(conn, player.rack)
 
     if (isReconnect && this.gameStarted) {
+      const scores = this.getScores()
       if (!this.players[this.currentTurn ?? ""]?.connected) {
         this.currentTurn = advanceToNextConnectedPlayer(
           this.playerOrder,
           this.players,
           this.currentTurn
         )
-        broadcastTurnChange(this.room, this.currentTurn)
+        broadcastTurnChange(this.room, this.currentTurn, scores)
       }
-      sendGameStart(conn, this.currentTurn)
+      sendGameStart(conn, this.currentTurn, scores)
       this.sendBoardState(conn, this.board)
     }
 
@@ -89,7 +91,8 @@ export default class Server implements Party.Server {
             this.players,
             this.currentTurn
           )
-          broadcastTurnChange(this.room, this.currentTurn)
+          const scores = this.getScores()
+          broadcastTurnChange(this.room, this.currentTurn, scores)
         }
         broadcastRoomState(
           this.room,
@@ -145,7 +148,7 @@ export default class Server implements Party.Server {
       if (conn) sendRack(conn, drawn)
     }
 
-    broadcastGameStart(this.room, this.currentTurn)
+    broadcastGameStart(this.room, this.currentTurn, this.getScores())
   }
 
   private handleSubmitTurn(
@@ -170,6 +173,12 @@ export default class Server implements Party.Server {
       this.board[row][col] = player.rack[rackIndex]
     }
 
+    const uniqueRackIndices = [...new Set(placements.map((p) => p.rackIndex))]
+    const turnScore = placements.reduce((sum, { rackIndex }) => {
+      return sum + (player.rack[rackIndex]?.points ?? 0)
+    }, 0)
+    player.score += turnScore
+
     const indices = this.getValidatedRackIndices(msg.placements)
 
     // Removing tiles from the end of the array first prevents index shifts
@@ -191,7 +200,8 @@ export default class Server implements Party.Server {
       this.players,
       this.currentTurn
     )
-    broadcastTurnChange(this.room, this.currentTurn)
+    const scores = this.getScores()
+    broadcastTurnChange(this.room, this.currentTurn, scores)
   }
 
   private getValidatedRackIndices(placements: unknown): number[] {
@@ -229,5 +239,11 @@ export default class Server implements Party.Server {
 
   private sendBoardState(conn: Party.Connection, board: (Tile | null)[][]) {
     conn.send(JSON.stringify({ type: "BOARD_STATE", board }))
+  }
+
+  private getScores(): Record<string, number> {
+    return Object.fromEntries(
+      Object.entries(this.players).map(([id, p]) => [id, p.score])
+    )
   }
 }

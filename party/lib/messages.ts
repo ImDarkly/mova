@@ -8,16 +8,18 @@ export function broadcastRoomState(room: Party.Room, players: PublicPlayer[]) {
 
 export function broadcastTurnChange(
   room: Party.Room,
-  currentTurn: string | null
+  currentTurn: string | null,
+  scores: Record<string, number>
 ) {
-  room.broadcast(JSON.stringify({ type: "TURN_CHANGE", currentTurn }))
+  room.broadcast(JSON.stringify({ type: "TURN_CHANGE", currentTurn, scores }))
 }
 
 export function broadcastGameStart(
   room: Party.Room,
-  currentTurn: string | null
+  currentTurn: string | null,
+  scores: Record<string, number>
 ) {
-  room.broadcast(JSON.stringify({ type: "GAME_START", currentTurn }))
+  room.broadcast(JSON.stringify({ type: "GAME_START", currentTurn, scores }))
 }
 
 export function sendRack(conn: Party.Connection, tiles: Tile[]) {
@@ -30,9 +32,10 @@ export function sendRoomFull(conn: Party.Connection) {
 
 export function sendGameStart(
   conn: Party.Connection,
-  currentTurn: string | null
+  currentTurn: string | null,
+  scores: Record<string, number>
 ) {
-  conn.send(JSON.stringify({ type: "GAME_START", currentTurn }))
+  conn.send(JSON.stringify({ type: "GAME_START", currentTurn, scores }))
 }
 
 export function broadcastBoardState(

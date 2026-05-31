@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
 
 interface ReadyButtonProps {
-  send: (data: object) => void
+  send: (data: { type: "READY" } | { type: "UNREADY" }) => boolean
 }
 
 export default function ReadyButton({ send }: ReadyButtonProps) {
