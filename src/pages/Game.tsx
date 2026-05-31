@@ -6,6 +6,7 @@ import RoomLayout from "@/components/room/RoomLayout"
 import { Button } from "@/components/ui/button"
 import { useGameSession } from "@/hooks/game/useGameSession"
 import { useTileAssignment } from "@/hooks/game/useTileAssignment"
+import { getClientId } from "@/lib/clientId"
 import type { TileType } from "@/types/game"
 import {
   DndContext,
@@ -18,11 +19,20 @@ import {
 } from "@dnd-kit/core"
 import { Check, Trash } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
-import { useParams } from "react-router"
+import { useNavigate, useParams } from "react-router"
 
 function GameSessionView({ roomId }: { roomId: string }) {
-  const { tiles, players, currentTurn, isMyTurn, boardTiles, send, scores } =
-    useGameSession(roomId)
+  const navigate = useNavigate()
+  const {
+    tiles,
+    players,
+    currentTurn,
+    isMyTurn,
+    boardTiles,
+    send,
+    scores,
+    gameOver,
+  } = useGameSession(roomId)
   const {
     rack,
     assignTile,
@@ -101,6 +111,40 @@ function GameSessionView({ roomId }: { roomId: string }) {
       }))
 
     send({ type: "SUBMIT_TURN", placements })
+  }
+
+  if (gameOver) {
+    const myId = getClientId()
+    const isWinner = gameOver.winnerIds.includes(myId)
+    const isTie = gameOver.winnerIds.length > 1
+
+    return (
+      <div className="flex flex-col items-center justify-center gap-6">
+        <h1 className="font-heading text-2xl font-medium">
+          {isTie ? "It's a tie!" : isWinner ? "You win!" : "You lose!"}
+        </h1>
+        <div className="flex flex-col gap-1">
+          {players
+            .sort(
+              (a, b) =>
+                (gameOver.scores[b.id] ?? 0) - (gameOver.scores[a.id] ?? 0)
+            )
+            .map((p) => (
+              <div key={p.id} className="flex gap-4 text-sm">
+                <span
+                  className={
+                    p.id === myId ? "font-medium" : "text-muted-foreground"
+                  }
+                >
+                  {p.id}
+                </span>
+                <span>{gameOver.scores[p.id] ?? 0}</span>
+              </div>
+            ))}
+        </div>
+        <Button onClick={() => navigate("/")}>Go Home</Button>
+      </div>
+    )
   }
 
   return (

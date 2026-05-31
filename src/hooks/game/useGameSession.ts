@@ -18,6 +18,10 @@ export function useGameSession(roomId: string) {
   const [players, setPlayers] = useState<Player[]>([])
   const [boardTiles, setBoardTiles] = useState<Record<string, TileType>>({})
   const [scores, setScores] = useState<Record<string, number>>({})
+  const [gameOver, setGameOver] = useState<{
+    winnerIds: string[]
+    scores: Record<string, number>
+  } | null>(null)
 
   const socket = usePartySocket({
     host: `${window.location.hostname}:1999`,
@@ -57,6 +61,9 @@ export function useGameSession(roomId: string) {
             toast.error(title, { description })
             break
           }
+          case "GAME_OVER":
+            setGameOver({ winnerIds: msg.winnerIds, scores: msg.scores })
+            break
         }
       } catch {
         console.log("non-JSON message:", event.data)
@@ -86,5 +93,14 @@ export function useGameSession(roomId: string) {
 
   const isMyTurn = currentTurn === myId
 
-  return { tiles, players, currentTurn, isMyTurn, boardTiles, send, scores }
+  return {
+    tiles,
+    players,
+    currentTurn,
+    isMyTurn,
+    boardTiles,
+    send,
+    scores,
+    gameOver,
+  }
 }
