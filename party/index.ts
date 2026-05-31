@@ -3,6 +3,7 @@ import { BOARD_SIZE, MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "./constants"
 import { buildBag, drawTiles, refillRack, shuffleBag } from "./lib/bag"
 import {
   broadcastBoardState,
+  broadcastGameOver,
   broadcastGameStart,
   broadcastRoomState,
   broadcastTurnChange,
@@ -27,6 +28,8 @@ export default class Server implements Party.Server {
   players: Record<string, Player> = {}
   bag: Tile[] = []
   gameStarted = false
+  gameOver = false
+  winnerIds: string[] = []
   playerOrder: string[] = []
   currentTurn: string | null = null
   board: (Tile | null)[][] = Array.from({ length: BOARD_SIZE }, () =>
@@ -60,6 +63,17 @@ export default class Server implements Party.Server {
     if (player.rack.length > 0) sendRack(conn, player.rack)
 
     if (isReconnect && this.gameStarted) {
+      if (this.gameOver) {
+        conn.send(
+          JSON.stringify({
+            type: "GAME_OVER",
+            winnerIds: this.winnerIds,
+            scores: this.getScores(),
+          })
+        )
+        return
+      }
+
       const scores = this.getScores()
       if (!this.players[this.currentTurn ?? ""]?.connected) {
         this.currentTurn = advanceToNextConnectedPlayer(
@@ -155,8 +169,8 @@ export default class Server implements Party.Server {
     sender: Party.Connection,
     msg: { placements?: unknown }
   ) {
-    // Only the active player is allowed to submit a turn
     if (sender.id !== this.currentTurn) return
+    if (this.gameOver) return
 
     const player = this.players[sender.id]
     const placements = Array.isArray(msg.placements)
@@ -173,7 +187,6 @@ export default class Server implements Party.Server {
       this.board[row][col] = player.rack[rackIndex]
     }
 
-    const uniqueRackIndices = [...new Set(placements.map((p) => p.rackIndex))]
     const turnScore = placements.reduce((sum, { rackIndex }) => {
       return sum + (player.rack[rackIndex]?.points ?? 0)
     }, 0)
@@ -181,8 +194,6 @@ export default class Server implements Party.Server {
 
     const indices = this.getValidatedRackIndices(msg.placements)
 
-    // Removing tiles from the end of the array first prevents index shifts
-    // from invalidating remaining indices in the sequence.
     this.removeTilesFromRack(player, indices)
 
     const { rack, bag } = refillRack(player.rack, this.bag)
@@ -193,7 +204,9 @@ export default class Server implements Party.Server {
       .getConnection(sender.id)
       ?.send(JSON.stringify({ type: "RACK_STATE", tiles: rack }))
 
+    this.checkGameOver(player)
     broadcastBoardState(this.room, this.board)
+    if (this.gameOver) return
 
     this.currentTurn = advanceToNextConnectedPlayer(
       this.playerOrder,
@@ -245,5 +258,16 @@ export default class Server implements Party.Server {
     return Object.fromEntries(
       Object.entries(this.players).map(([id, p]) => [id, p.score])
     )
+  }
+
+  private checkGameOver(player: Player) {
+    if (this.bag.length !== 0 || player.rack.length !== 0) return
+    this.gameOver = true
+    const scores = this.getScores()
+    const maxScore = Math.max(...Object.values(scores))
+    this.winnerIds = Object.entries(scores)
+      .filter(([, s]) => s === maxScore)
+      .map(([id]) => id)
+    broadcastGameOver(this.room, this.winnerIds, scores)
   }
 }

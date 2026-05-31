@@ -8,7 +8,7 @@ export type ServerMessage =
       type: "GAME_START"
       currentTurn: string
       roomId?: string
-      scores: Record<string, number>
+      scores: Record<string, string>
     }
   | { type: "TURN_CHANGE"; currentTurn: string; scores: Record<string, number> }
   | { type: "RACK_STATE"; tiles: TileType[] }
@@ -17,6 +17,7 @@ export type ServerMessage =
       type: "SUBMIT_ERROR"
       error: "NO_TILES" | "NOT_IN_LINE" | "GAP_NOT_FILLED" | "NOT_CONNECTED"
     }
+  | { type: "GAME_OVER"; winnerIds: string[]; scores: Record<string, number> }
 
 export type ClientMessage =
   | { type: "READY" }
