@@ -61,3 +61,11 @@ export function sendSubmitError(
 ) {
   conn.send(JSON.stringify({ type: "SUBMIT_ERROR", error }))
 }
+
+export function broadcastGameOver(
+  room: Party.Room,
+  winnerIds: string[],
+  scores: Record<string, number>
+) {
+  room.broadcast(JSON.stringify({ type: "GAME_OVER", winnerIds, scores }))
+}

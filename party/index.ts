@@ -3,6 +3,7 @@ import { BOARD_SIZE, MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "./constants"
 import { buildBag, drawTiles, refillRack, shuffleBag } from "./lib/bag"
 import {
   broadcastBoardState,
+  broadcastGameOver,
   broadcastGameStart,
   broadcastRoomState,
   broadcastTurnChange,
@@ -27,6 +28,7 @@ export default class Server implements Party.Server {
   players: Record<string, Player> = {}
   bag: Tile[] = []
   gameStarted = false
+  gameOver = false
   playerOrder: string[] = []
   currentTurn: string | null = null
   board: (Tile | null)[][] = Array.from({ length: BOARD_SIZE }, () =>
@@ -70,6 +72,15 @@ export default class Server implements Party.Server {
         broadcastTurnChange(this.room, this.currentTurn, scores)
       }
       sendGameStart(conn, this.currentTurn, scores)
+      if (this.gameOver) {
+        const scores = this.getScores()
+        const maxScore = Math.max(...Object.values(scores))
+        const winnerIds = Object.entries(scores)
+          .filter(([, s]) => s === maxScore)
+          .map(([id]) => id)
+        conn.send(JSON.stringify({ type: "GAME_OVER", winnerIds, scores }))
+        return
+      }
       this.sendBoardState(conn, this.board)
     }
 
@@ -155,8 +166,8 @@ export default class Server implements Party.Server {
     sender: Party.Connection,
     msg: { placements?: unknown }
   ) {
-    // Only the active player is allowed to submit a turn
     if (sender.id !== this.currentTurn) return
+    if (this.gameOver) return
 
     const player = this.players[sender.id]
     const placements = Array.isArray(msg.placements)
@@ -181,8 +192,6 @@ export default class Server implements Party.Server {
 
     const indices = this.getValidatedRackIndices(msg.placements)
 
-    // Removing tiles from the end of the array first prevents index shifts
-    // from invalidating remaining indices in the sequence.
     this.removeTilesFromRack(player, indices)
 
     const { rack, bag } = refillRack(player.rack, this.bag)
@@ -192,6 +201,9 @@ export default class Server implements Party.Server {
     this.room
       .getConnection(sender.id)
       ?.send(JSON.stringify({ type: "RACK_STATE", tiles: rack }))
+
+    this.checkGameOver(player)
+    if (this.gameOver) return
 
     broadcastBoardState(this.room, this.board)
 
@@ -245,5 +257,16 @@ export default class Server implements Party.Server {
     return Object.fromEntries(
       Object.entries(this.players).map(([id, p]) => [id, p.score])
     )
+  }
+
+  private checkGameOver(player: Player) {
+    if (this.bag.length !== 0 || player.rack.length !== 0) return
+    this.gameOver = true
+    const scores = this.getScores()
+    const maxScore = Math.max(...Object.values(scores))
+    const winnerIds = Object.entries(scores)
+      .filter(([, s]) => s === maxScore)
+      .map(([id]) => id)
+    broadcastGameOver(this.room, winnerIds, scores)
   }
 }
