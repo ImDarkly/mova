@@ -205,9 +205,8 @@ export default class Server implements Party.Server {
       ?.send(JSON.stringify({ type: "RACK_STATE", tiles: rack }))
 
     this.checkGameOver(player)
-    if (this.gameOver) return
-
     broadcastBoardState(this.room, this.board)
+    if (this.gameOver) return
 
     this.currentTurn = advanceToNextConnectedPlayer(
       this.playerOrder,
