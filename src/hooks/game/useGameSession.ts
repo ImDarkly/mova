@@ -7,6 +7,7 @@ import { useCallback, useRef, useState } from "react"
 import { useTranslation } from "react-i18next"
 import { useNavigate } from "react-router"
 import { toast } from "sonner"
+import { getPlayerName } from "@/lib/playerName"
 
 export function useGameSession(roomId: string) {
   const { t } = useTranslation("game")
@@ -27,6 +28,9 @@ export function useGameSession(roomId: string) {
     host: `${window.location.hostname}:1999`,
     room: roomId,
     id: myId,
+    query: {
+      name: getPlayerName() ?? "",
+    },
     onMessage(event) {
       try {
         const msg = JSON.parse(event.data) as ServerMessage

@@ -1,4 +1,5 @@
 {
   "or": "or",
-  "and": "and"
+  "and": "and",
+  "nameInput": "Your name"
 }

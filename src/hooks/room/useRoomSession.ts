@@ -7,6 +7,7 @@ import usePartySocket from "partysocket/react"
 import { getClientId } from "@/lib/clientId"
 import type { ServerMessage } from "@/types/messages"
 import { WebSocket } from "partysocket"
+import { getPlayerName } from "@/lib/playerName"
 
 export function useRoomSession(roomId: string) {
   const { t } = useTranslation("room")
@@ -18,6 +19,9 @@ export function useRoomSession(roomId: string) {
     host: `${window.location.hostname}:1999`,
     room: roomId,
     id: getClientId(),
+    query: {
+      name: getPlayerName() ?? "",
+    },
     onMessage(event) {
       try {
         const msg = JSON.parse(event.data) as ServerMessage

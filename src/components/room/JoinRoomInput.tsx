@@ -11,7 +11,7 @@ import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp"
 import { Hash } from "lucide-react"
 import { ROOM_CODE_LENGTH } from "@/lib/roomId"
 
-export default function JoinRoomInput() {
+export default function JoinRoomInput({ disabled }: { disabled?: boolean }) {
   const { t } = useTranslation("room")
   const [code, setCode] = useState("")
   const joinRoom = useJoinRoom()
@@ -40,7 +40,7 @@ export default function JoinRoomInput() {
         </InputOTPGroup>
       </InputOTP>
       <Button
-        disabled={code.length !== ROOM_CODE_LENGTH}
+        disabled={code.length !== ROOM_CODE_LENGTH || disabled}
         variant="secondary"
         onClick={handleJoin}
       >
