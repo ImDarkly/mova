@@ -48,8 +48,12 @@ export default class Server implements Party.Server {
         return
       }
       this.playerOrder.push(conn.id)
+      const url = new URL(conn.uri)
+      const name = url.searchParams.get("name")?.trim() || conn.id
+
       this.players[conn.id] = {
         id: conn.id,
+        name,
         ready: false,
         rack: [],
         connected: true,
