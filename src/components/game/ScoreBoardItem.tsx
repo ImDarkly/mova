@@ -27,7 +27,7 @@ export default function ScoreBoardItem({
     >
       <ItemContent>
         <ItemTitle>
-          {player.id}
+          {player.name}
           {isMe && <Badge variant="outline">{t("labels.you")}</Badge>}
         </ItemTitle>
       </ItemContent>

@@ -140,7 +140,7 @@ function GameSessionView({ roomId }: { roomId: string }) {
                     p.id === myId ? "font-medium" : "text-muted-foreground"
                   }
                 >
-                  {p.id}
+                  {p.name}
                 </span>
                 <span>{gameOver.scores[p.id] ?? 0}</span>
               </div>

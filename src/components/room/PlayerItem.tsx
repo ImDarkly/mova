@@ -19,7 +19,7 @@ export default function PlayerItem({ player, isMe }: PlayerItemProps) {
     >
       <ItemContent>
         <ItemTitle>
-          {player.id}
+          {player.name}
           {isMe && <Badge variant="outline">{t("labels.you")}</Badge>}
         </ItemTitle>
       </ItemContent>
