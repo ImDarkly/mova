@@ -156,6 +156,9 @@ export default class Server implements Party.Server {
     }
 
     const player = this.gameState.players[sender.id]
+    if (!player) {
+      return
+    }
     this.room
       .getConnection(sender.id)
       ?.send(JSON.stringify({ type: "RACK_STATE", tiles: player.rack }))
