@@ -83,7 +83,16 @@ export class GameState {
   }
 
   toggleReady(playerId: string, ready: boolean): ToggleReadyResult {
-    this.players[playerId].ready = ready
+    const player = this.players[playerId]
+    if (!player) {
+      return { shouldStartGame: false }
+    }
+
+    if (this.gameStarted) {
+      return { shouldStartGame: false }
+    }
+
+    player.ready = ready
     const list = Object.values(this.players)
     const shouldStartGame =
       list.length >= MIN_PLAYERS && list.every((p) => p.ready)
@@ -105,6 +114,18 @@ export class GameState {
     const result = validatePlacements(validatedPlacements, this.board)
     if (!result.valid) {
       return { success: false, error: result.error }
+    }
+
+    // Validate rackIndex bounds and uniqueness
+    const rackIndices = new Set<number>()
+    for (const { rackIndex } of validatedPlacements) {
+      if (rackIndex < 0 || rackIndex >= player.rack.length) {
+        return { success: false, error: "OUT_OF_BOUNDS" }
+      }
+      if (rackIndices.has(rackIndex)) {
+        return { success: false, error: "DUPLICATE_COORDINATE" }
+      }
+      rackIndices.add(rackIndex)
     }
 
     for (const { row, col, rackIndex } of validatedPlacements) {
