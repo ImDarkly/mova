@@ -189,7 +189,7 @@ function GameSessionView({ roomId }: { roomId: string }) {
       </RoomLayout>
 
       <DragOverlay dropAnimation={null}>
-        {activeTile ? <Tile tile={activeTile} /> : null}
+        {activeTile ? <Tile tile={activeTile} hidePoints /> : null}
       </DragOverlay>
     </DndContext>
   )
