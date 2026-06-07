@@ -1,4 +1,4 @@
-import { useCopyRoomLink } from "@/hooks/useCopyRoomLink"
+import { useCopyRoomLink } from "@/hooks/room/useCopyRoomLink"
 import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
@@ -17,9 +17,9 @@ export default function RoomIdDisplay({ roomId }: RoomIdDisplayProps) {
 
   return (
     <div className="flex gap-1">
-      <Input readOnly value={roomId} className="w-auto" />
+      <Input readOnly value={roomId} className="field-sizing-content" />
       <Button variant="secondary" onClick={handleCopy}>
-        {t("copyRoomLink")}
+        {t("actions.copyRoomLink")}
       </Button>
     </div>
   )

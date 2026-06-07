@@ -1,20 +1,55 @@
 {
-  "createRoom": "Create Room",
-  "copyRoomLink": "Copy Link",
-  "success": {
-    "title": "Link copied!",
-    "description": "Share it with your friend"
+  "actions": {
+    "createRoom": "Create Room",
+    "joinRoom": "Join Room",
+    "leaveRoom": "Leave Room",
+    "copyRoomLink": "Copy Link"
   },
-  "error": {
-    "title": "Could not copy link",
-    "description": "Share it manually with your friend"
+  "labels": {
+    "you": "You"
   },
-  "copyRoomLinkError": "Could not copy link, share it manually",
-  "leaveRoom": "Leave Room",
-  "leaveRoomDialog": {
-    "title": "Leave Room?",
-    "description": "Your progress will be lost and the game will end for all players.",
-    "confirm": "Leave",
-    "cancel": "Stay"
+  "player": {
+    "ready": "Ready",
+    "notReady": "Not Ready"
+  },
+  "events": {
+    "roomFull": {
+      "title": "Room is full",
+      "description": "This room already has 4 players. Please create a new room or try another link."
+    }
+  },
+  "dialogs": {
+    "leaveRoom": {
+      "title": "Leave Room?",
+      "description": "Your progress will be lost.",
+      "confirm": "Leave",
+      "cancel": "Stay"
+    }
+  },
+  "status": {
+    "success": {
+      "copyRoomLink": {
+        "title": "Link copied!",
+        "description": "Share it with your friend"
+      }
+    }
+  },
+  "errors": {
+    "clipboard": {
+      "copyRoomLink": {
+        "title": "Could not copy link",
+        "description": "Share it manually with your friend"
+      }
+    },
+    "connection": {
+      "failed": {
+        "title": "Connection failed",
+        "description": "Unable to connect to the server. Check your connection or try again later."
+      },
+      "lost": {
+        "title": "Connection lost",
+        "description": "The connection was interrupted. You have been returned to the home screen."
+      }
+    }
   }
 }

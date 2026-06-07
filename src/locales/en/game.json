@@ -1,0 +1,47 @@
+{
+  "errors": {
+    "submit": {
+      "NO_TILES": {
+        "title": "No tiles placed",
+        "description": "Please place at least one tile on the board."
+      },
+      "NOT_IN_LINE": {
+        "title": "Invalid placement",
+        "description": "Tiles must be placed in a straight horizontal or vertical line."
+      },
+      "GAP_NOT_FILLED": {
+        "title": "Invalid gap",
+        "description": "Tiles must connect to existing tiles and be placed contiguously (no gaps)."
+      },
+      "NOT_CONNECTED": {
+        "title": "Not connected",
+        "description": "Your word must connect to the existing board."
+      },
+      "OUT_OF_BOUNDS": {
+        "title": "Invalid placement",
+        "description": "One or more tiles were placed outside the board boundaries."
+      },
+      "CELL_OCCUPIED": {
+        "title": "Cell occupied",
+        "description": "One or more tiles overlap with tiles already on the board."
+      },
+      "DUPLICATE_COORDINATE": {
+        "title": "Duplicate placement",
+        "description": "You placed more than one tile in the same cell."
+      }
+    },
+    "connection": {
+      "failed": {
+        "title": "Connection failed",
+        "description": "Unable to connect to the server. Check your connection or try again later."
+      },
+      "lost": {
+        "title": "Connection lost",
+        "description": "The connection was interrupted. You have been returned to the home screen."
+      }
+    }
+  },
+  "labels": {
+    "you": "You"
+  }
+}
