@@ -1,6 +1,6 @@
 import Tile from "@/components/game/Tile"
 import { cn } from "@/lib/utils"
-import type { TileType } from "@/types/room"
+import type { TileType } from "@/types/game"
 import { useDroppable } from "@dnd-kit/core"
 
 interface RackProps {

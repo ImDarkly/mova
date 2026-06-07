@@ -4,7 +4,7 @@ import ReadyButton from "./ReadyButton"
 
 interface RoomLobbyProps {
   players: Player[]
-  send: (data: object) => void
+  send: (data: { type: "READY" } | { type: "UNREADY" }) => boolean
 }
 
 export default function RoomLobby({ players, send }: RoomLobbyProps) {

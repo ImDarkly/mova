@@ -25,7 +25,8 @@ export function useGameSession(roomId: string) {
   } | null>(null)
 
   const socket = usePartySocket({
-    host: `${window.location.hostname}:1999`,
+    host:
+      import.meta.env.VITE_PARTYKIT_HOST ?? `${window.location.hostname}:1999`,
     room: roomId,
     id: myId,
     query: {

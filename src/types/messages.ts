@@ -8,7 +8,7 @@ export type ServerMessage =
       type: "GAME_START"
       currentTurn: string
       roomId?: string
-      scores: Record<string, string>
+      scores: Record<string, number>
     }
   | { type: "TURN_CHANGE"; currentTurn: string; scores: Record<string, number> }
   | { type: "RACK_STATE"; tiles: TileType[] }
