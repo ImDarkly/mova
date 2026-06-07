@@ -16,7 +16,8 @@ export function useRoomSession(roomId: string) {
   const intentionalClose = useRef(false)
 
   const socket = usePartySocket({
-    host: `${window.location.hostname}:1999`,
+    host:
+      import.meta.env.VITE_PARTYKIT_HOST ?? `${window.location.hostname}:1999`,
     room: roomId,
     id: getClientId(),
     query: {
