@@ -1,9 +1,10 @@
 export const ROOM_CODE_LENGTH = 6
+const CHARS = "ABCDEFGHJKLMNPQRSTUVWXYZ34679"
 
 export function generateRoomId() {
-  return Math.random()
-    .toString(36)
-    .padEnd(2 + ROOM_CODE_LENGTH, "0")
-    .substring(2, 2 + ROOM_CODE_LENGTH)
-    .toUpperCase()
+  let result = ""
+  for (let i = 0; i < ROOM_CODE_LENGTH; i++) {
+    result += CHARS.charAt(Math.floor(Math.random() * CHARS.length))
+  }
+  return result
 }
