@@ -11,7 +11,8 @@ import type { TileType } from "@/types/game"
 import {
   DndContext,
   DragOverlay,
-  PointerSensor,
+  MouseSensor,
+  TouchSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
@@ -48,8 +49,11 @@ function GameSessionView({ roomId }: { roomId: string }) {
   const isSubmittingRef = useRef(false)
 
   const sensors = useSensors(
-    useSensor(PointerSensor, {
+    useSensor(MouseSensor, {
       activationConstraint: { distance: 8 },
+    }),
+    useSensor(TouchSensor, {
+      activationConstraint: { distance: 10 },
     })
   )
 
