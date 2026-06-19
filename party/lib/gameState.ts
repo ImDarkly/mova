@@ -237,4 +237,9 @@ export class GameState {
       .filter(([, s]) => s === maxScore)
       .map(([id]) => id)
   }
+
+  skipTurn(): void {
+    if (this.gameOver) return
+    this.advanceTurn()
+  }
 }
