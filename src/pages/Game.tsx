@@ -18,7 +18,7 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core"
-import { Check, Trash } from "lucide-react"
+import { Check, SkipForward, Trash } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router"
 
@@ -181,6 +181,14 @@ function GameSessionView({ roomId }: { roomId: string }) {
             <Trash />
           </Button>
           <Rack tiles={rack} disabled={!isMyTurn} />
+          <Button
+            variant="secondary"
+            disabled={!isMyTurn}
+            onClick={() => send({ type: "SKIP_TURN" })}
+            aria-label="Skip turn"
+          >
+            <SkipForward />
+          </Button>
           <Button
             variant="secondary"
             disabled={!isMyTurn || Object.keys(assignments).length === 0}
