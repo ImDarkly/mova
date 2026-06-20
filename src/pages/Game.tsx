@@ -18,11 +18,14 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core"
-import { Check, Trash } from "lucide-react"
+import { Check, SkipForward, Trash } from "lucide-react"
 import { useEffect, useRef, useState } from "react"
 import { useNavigate, useParams } from "react-router"
+import { useTranslation } from "react-i18next"
+import { toast } from "sonner"
 
 function GameSessionView({ roomId }: { roomId: string }) {
+  const { t } = useTranslation("game")
   const navigate = useNavigate()
   const {
     tiles,
@@ -117,6 +120,21 @@ function GameSessionView({ roomId }: { roomId: string }) {
     send({ type: "SUBMIT_TURN", placements })
   }
 
+  const handleSkipTurn = () => {
+    try {
+      send({ type: "SKIP_TURN" })
+      returnAll()
+    } catch (error) {
+      console.error("Failed to skip turn:", error)
+      toast.error(t("errors.skip.failed.title", "Failed to skip turn"), {
+        description: t(
+          "errors.skip.failed.description",
+          "An error occurred while skipping your turn."
+        ),
+      })
+    }
+  }
+
   if (gameOver) {
     const myId = getClientId()
     const isWinner = gameOver.winnerIds.includes(myId)
@@ -126,10 +144,10 @@ function GameSessionView({ roomId }: { roomId: string }) {
       <div className="flex flex-col items-center justify-center gap-6">
         <h1 className="font-heading text-2xl font-medium">
           {isTie && isWinner
-            ? "It's a tie!"
+            ? t("labels.gameOver.tie")
             : isWinner
-              ? "You win!"
-              : "You lose!"}
+              ? t("labels.gameOver.win")
+              : t("labels.gameOver.lose")}
         </h1>
         <div className="flex flex-col gap-1">
           {[...players]
@@ -150,7 +168,9 @@ function GameSessionView({ roomId }: { roomId: string }) {
               </div>
             ))}
         </div>
-        <Button onClick={() => navigate("/")}>Go Home</Button>
+        <Button onClick={() => navigate("/")}>
+          {t("labels.gameOver.goHome")}
+        </Button>
       </div>
     )
   }
@@ -181,6 +201,15 @@ function GameSessionView({ roomId }: { roomId: string }) {
             <Trash />
           </Button>
           <Rack tiles={rack} disabled={!isMyTurn} />
+          <Button
+            variant="secondary"
+            disabled={!isMyTurn}
+            onClick={handleSkipTurn}
+            aria-label="Skip turn"
+          >
+            <SkipForward />
+          </Button>
+
           <Button
             variant="secondary"
             disabled={!isMyTurn || Object.keys(assignments).length === 0}

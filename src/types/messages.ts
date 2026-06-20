@@ -26,3 +26,4 @@ export type ClientMessage =
       type: "SUBMIT_TURN"
       placements: { rackIndex: number; row: number; col: number }[]
     }
+  | { type: "SKIP_TURN" }
