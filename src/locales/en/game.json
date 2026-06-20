@@ -39,9 +39,21 @@
         "title": "Connection lost",
         "description": "The connection was interrupted. You have been returned to the home screen."
       }
+    },
+    "skip": {
+      "failed": {
+        "title": "Failed to skip turn",
+        "description": "An error occurred while skipping your turn."
+      }
     }
   },
   "labels": {
-    "you": "You"
+    "you": "You",
+    "gameOver": {
+      "tie": "It's a tie!",
+      "win": "You win!",
+      "lose": "You lose!",
+      "goHome": "Go Home"
+    }
   }
 }

@@ -113,6 +113,8 @@ export default class Server implements Party.Server {
       this.handleReadyToggle(sender, false)
     } else if (action.type === "SUBMIT_TURN") {
       this.handleSubmitTurn(sender, action.placements)
+    } else if (action.type === "SKIP_TURN") {
+      this.handleSkipTurn(sender)
     }
   }
 
@@ -184,5 +186,16 @@ export default class Server implements Party.Server {
       scores[id] = player.score
     }
     return scores
+  }
+
+  private handleSkipTurn(sender: Party.Connection) {
+    if (sender.id !== this.gameState.currentTurn || this.gameState.gameOver) {
+      return
+    }
+
+    this.gameState.skipTurn()
+
+    const scores = this.getScores()
+    broadcastTurnChange(this.room, this.gameState.currentTurn, scores)
   }
 }
