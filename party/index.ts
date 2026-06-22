@@ -12,11 +12,6 @@ import {
   sendRoomFull,
   sendSubmitError,
 } from "./lib/messages"
-import {
-  isValidWord,
-  isValidWithBlank,
-  validatePlacements,
-} from "./lib/validation"
 
 export default class Server implements Party.Server {
   gameState = new GameState()

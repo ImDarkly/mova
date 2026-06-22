@@ -24,10 +24,12 @@ const dictionary = new Set(sowpods.map((w: string) => w.toUpperCase()))
 const blankCache = new Map<string, boolean>()
 
 export function isValidWord(word: string): boolean {
+  if (!word) return false
   return dictionary.has(word.toUpperCase())
 }
 
 export function isValidWithBlank(word: string): boolean {
+  if (!word) return false
   const normalized = word.toUpperCase()
   if (blankCache.has(normalized)) {
     return blankCache.get(normalized)!

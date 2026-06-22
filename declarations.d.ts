@@ -1,1 +1,4 @@
-declare module "pf-sowpods"
+declare module "pf-sowpods" {
+  const sowpods: string[]
+  export = sowpods
+}
