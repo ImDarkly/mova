@@ -1,3 +1,4 @@
+import sowpods from "pf-sowpods"
 import { Tile } from "./types"
 
 type Placement = { rackIndex: number; row: number; col: number }
@@ -18,6 +19,43 @@ export type SubmitErrorCode = Extract<
   ValidationResult,
   { valid: false }
 >["error"]
+
+const dictionary = new Set(sowpods.map((w: string) => w.toUpperCase()))
+const blankCache = new Map<string, boolean>()
+
+export function isValidWord(word: string): boolean {
+  return dictionary.has(word.toUpperCase())
+}
+
+export function isValidWithBlank(word: string): boolean {
+  const normalized = word.toUpperCase()
+  if (blankCache.has(normalized)) {
+    return blankCache.get(normalized)!
+  }
+
+  function canFormValidWord(currentWord: string): boolean {
+    const blankIndex = currentWord.indexOf("?")
+    if (blankIndex === -1) {
+      return dictionary.has(currentWord)
+    }
+
+    for (let i = 0; i < 26; i++) {
+      const char = String.fromCharCode(65 + i)
+      const nextWord =
+        currentWord.substring(0, blankIndex) +
+        char +
+        currentWord.substring(blankIndex + 1)
+      if (canFormValidWord(nextWord)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  const isValid = canFormValidWord(normalized)
+  blankCache.set(normalized, isValid)
+  return isValid
+}
 
 export function validatePlacements(
   placements: Placement[],
