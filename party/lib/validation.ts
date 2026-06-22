@@ -13,6 +13,8 @@ type ValidationResult =
         | "OUT_OF_BOUNDS"
         | "CELL_OCCUPIED"
         | "DUPLICATE_COORDINATE"
+        | "INVALID_WORD"
+      invalidWords?: string[]
     }
 export type SubmitErrorCode = Extract<
   ValidationResult,
