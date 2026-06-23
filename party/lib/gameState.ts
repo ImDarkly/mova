@@ -128,15 +128,6 @@ export class GameState {
     const newTiles = validatedPlacements.map(
       ({ rackIndex }) => player.rack[rackIndex]
     )
-    const words = extractWordsFormed(validatedPlacements, this.board, newTiles)
-    const invalidWords = words.filter((word) => !isValidWithBlank(word))
-
-    if (invalidWords.length > 0) {
-      return {
-        success: false,
-        error: { valid: false, error: "INVALID_WORD", invalidWords },
-      }
-    }
 
     // Validate rackIndex bounds and uniqueness
     const rackIndices = new Set<number>()
@@ -154,6 +145,16 @@ export class GameState {
         }
       }
       rackIndices.add(rackIndex)
+    }
+
+    const words = extractWordsFormed(validatedPlacements, this.board, newTiles)
+    const invalidWords = words.filter((word) => !isValidWithBlank(word))
+
+    if (invalidWords.length > 0) {
+      return {
+        success: false,
+        error: { valid: false, error: "INVALID_WORD", invalidWords },
+      }
     }
 
     for (const { row, col, rackIndex } of validatedPlacements) {
