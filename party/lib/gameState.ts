@@ -142,10 +142,16 @@ export class GameState {
     const rackIndices = new Set<number>()
     for (const { rackIndex } of validatedPlacements) {
       if (rackIndex < 0 || rackIndex >= player.rack.length) {
-        return { success: false, error: "OUT_OF_BOUNDS" }
+        return {
+          success: false,
+          error: { valid: false, error: "OUT_OF_BOUNDS" },
+        }
       }
       if (rackIndices.has(rackIndex)) {
-        return { success: false, error: "DUPLICATE_COORDINATE" }
+        return {
+          success: false,
+          error: { valid: false, error: "DUPLICATE_COORDINATE" },
+        }
       }
       rackIndices.add(rackIndex)
     }
