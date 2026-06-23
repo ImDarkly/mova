@@ -15,7 +15,13 @@ export type ServerMessage =
   | { type: "BOARD_STATE"; board: Record<string, TileType> }
   | {
       type: "SUBMIT_ERROR"
-      error: "NO_TILES" | "NOT_IN_LINE" | "GAP_NOT_FILLED" | "NOT_CONNECTED"
+      error:
+        | "NO_TILES"
+        | "NOT_IN_LINE"
+        | "GAP_NOT_FILLED"
+        | "NOT_CONNECTED"
+        | "INVALID_WORD"
+      invalidWords?: string[]
     }
   | { type: "GAME_OVER"; winnerIds: string[]; scores: Record<string, number> }
 

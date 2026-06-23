@@ -60,7 +60,8 @@ export function useGameSession(roomId: string) {
             )
             const description = t(
               `errors.submit.${msg.error}.description`,
-              "An error occurred while submitting."
+              "An error occurred while submitting.",
+              { words: (msg.invalidWords ?? []).join(", ") }
             )
 
             toast.error(title, { description })

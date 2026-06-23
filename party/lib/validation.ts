@@ -2,10 +2,10 @@ import sowpods from "pf-sowpods"
 import { Tile } from "./types"
 
 type Placement = { rackIndex: number; row: number; col: number }
-type ValidationResult =
-  | { valid: true }
-  | {
-      valid: false
+type BaseError = { valid: false }
+
+export type ValidationError =
+  | (BaseError & {
       error:
         | "NO_TILES"
         | "NOT_IN_LINE"
@@ -14,11 +14,13 @@ type ValidationResult =
         | "OUT_OF_BOUNDS"
         | "CELL_OCCUPIED"
         | "DUPLICATE_COORDINATE"
-    }
-export type SubmitErrorCode = Extract<
-  ValidationResult,
-  { valid: false }
->["error"]
+    })
+  | (BaseError & {
+      error: "INVALID_WORD"
+      invalidWords: string[]
+    })
+
+export type ValidationResult = { valid: true } | ValidationError
 
 const dictionary = new Set(sowpods.map((w: string) => w.toUpperCase()))
 const blankCache = new Map<string, boolean>()
