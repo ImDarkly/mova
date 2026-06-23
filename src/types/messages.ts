@@ -15,6 +15,7 @@ export type ServerMessage =
   | { type: "BOARD_STATE"; board: Record<string, TileType> }
   | {
       type: "SUBMIT_ERROR"
+      valid: false
       error:
         | "NO_TILES"
         | "NOT_IN_LINE"
