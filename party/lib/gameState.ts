@@ -148,6 +148,12 @@ export class GameState {
     }
 
     const words = extractWordsFormed(validatedPlacements, this.board, newTiles)
+    if (words.length === 0) {
+      return {
+        success: false,
+        error: { valid: false, error: "INVALID_WORD", invalidWords: [] },
+      }
+    }
     const invalidWords = words.filter((word) => !isValidWithBlank(word))
 
     if (invalidWords.length > 0) {
