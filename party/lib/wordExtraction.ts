@@ -77,7 +77,13 @@ function getWordAt(
   // as the placement might be in the middle of an existing sequence.
   let r = row
   let c = col
-  while (r - dx >= 0 && c - dy >= 0 && board[r - dx][c - dy] !== null) {
+  while (
+    r - dx >= 0 &&
+    r - dx < board.length &&
+    c - dy >= 0 &&
+    c - dy < board[r - dx].length &&
+    board[r - dx][c - dy] !== null
+  ) {
     r -= dx
     c -= dy
   }
