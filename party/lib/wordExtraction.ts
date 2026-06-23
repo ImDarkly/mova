@@ -89,7 +89,13 @@ function getWordAt(
   }
 
   // Iterate forward to reconstruct the full sequence.
-  while (r < board.length && c < board[0].length && board[r][c] !== null) {
+  while (
+    r < board.length &&
+    board[r] &&
+    c >= 0 &&
+    c < board[r].length &&
+    board[r][c] !== null
+  ) {
     word += board[r][c]!.letter
     r += dx
     c += dy
