@@ -8,19 +8,26 @@ export function extractWordsFormed(
   board: Board,
   newTiles: Tile[]
 ): string[] {
-  if (placements.length !== newTiles.length) return []
+  if (placements.length === 0 || placements.length !== newTiles.length)
+    return []
 
   // Used to prevent accidental mutation of the actual game state.
   const tempBoard = board.map((row) => [...row])
+  // Validate all placements upfront. If any are out of bounds,
+  // reject the entire operation to prevent partial/invalid states.
+  const isAnyInvalid = placements.some(
+    (p) =>
+      p.row < 0 ||
+      p.row >= tempBoard.length ||
+      p.col < 0 ||
+      p.col >= tempBoard[p.row].length
+  )
+
+  if (isAnyInvalid) return []
+
+  // Process valid placements
   placements.forEach((p, i) => {
-    if (
-      p.row >= 0 &&
-      p.row < tempBoard.length &&
-      p.col >= 0 &&
-      p.col < tempBoard[p.row].length
-    ) {
-      tempBoard[p.row][p.col] = newTiles[i]
-    }
+    tempBoard[p.row][p.col] = newTiles[i]
   })
 
   // A Set ensures we only return unique words, satisfying the requirement.
