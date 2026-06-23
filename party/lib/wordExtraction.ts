@@ -29,6 +29,8 @@ export function extractWordsFormed(
   const isHorizontal = placements.every((p) => p.row === placements[0].row)
   const isVertical = placements.every((p) => p.col === placements[0].col)
 
+  if (!isHorizontal && !isVertical) return []
+
   // Identify the primary word created by the move.
   if (isHorizontal) {
     const word = getWordAt(
