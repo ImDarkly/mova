@@ -20,6 +20,9 @@ export type ServerMessage =
         | "NOT_IN_LINE"
         | "GAP_NOT_FILLED"
         | "NOT_CONNECTED"
+        | "OUT_OF_BOUNDS"
+        | "CELL_OCCUPIED"
+        | "DUPLICATE_COORDINATE"
         | "INVALID_WORD"
       invalidWords?: string[]
     }
