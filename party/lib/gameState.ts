@@ -2,7 +2,12 @@ import { BOARD_SIZE, MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "../constants"
 import { buildBag, drawTiles, refillRack, shuffleBag } from "./bag"
 import { isPlacement, type Player, type Tile } from "./types"
 import { advanceToNextConnectedPlayer, findFirstConnectedPlayer } from "./turns"
-import { SubmitErrorCode, validatePlacements } from "./validation"
+import { extractWordsFormed } from "./wordExtraction"
+import {
+  isValidWithBlank,
+  validatePlacements,
+  type ValidationError,
+} from "./validation"
 
 export interface PlayerConnectResult {
   isNewPlayer: boolean
@@ -15,7 +20,7 @@ export interface ToggleReadyResult {
 
 export type SubmitTurnResult =
   | { success: true; turnScore: number }
-  | { success: false; error: SubmitErrorCode }
+  | { success: false; error: ValidationError }
 
 export interface HandleReconnectResult {
   gameOver: boolean
@@ -111,9 +116,26 @@ export class GameState {
       ? placements.filter(isPlacement)
       : []
 
-    const result = validatePlacements(validatedPlacements, this.board)
-    if (!result.valid) {
-      return { success: false, error: result.error }
+    // Validate geometry and connectivity before modifying any game state
+    // to ensure an "atomic" operation—if anything fails, the board remains unchanged.
+    const geomResult = validatePlacements(validatedPlacements, this.board)
+    if (!geomResult.valid) {
+      return { success: false, error: geomResult }
+    }
+
+    // Verify all newly formed words against the dictionary.
+    // Validation must run before state update to reject illegal moves.
+    const newTiles = validatedPlacements.map(
+      ({ rackIndex }) => player.rack[rackIndex]
+    )
+    const words = extractWordsFormed(validatedPlacements, this.board, newTiles)
+    const invalidWords = words.filter((word) => !isValidWithBlank(word))
+
+    if (invalidWords.length > 0) {
+      return {
+        success: false,
+        error: { valid: false, error: "INVALID_WORD", invalidWords },
+      }
     }
 
     // Validate rackIndex bounds and uniqueness
