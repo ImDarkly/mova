@@ -23,6 +23,7 @@ export function useGameSession(roomId: string) {
     winnerIds: string[]
     scores: Record<string, number>
   } | null>(null)
+  const [lastError, setLastError] = useState<ServerMessage | null>(null)
 
   const socket = usePartySocket({
     host:
@@ -65,6 +66,7 @@ export function useGameSession(roomId: string) {
             )
 
             toast.error(title, { description })
+            setLastError(msg)
             break
           }
           case "GAME_OVER":
@@ -108,5 +110,6 @@ export function useGameSession(roomId: string) {
     send,
     scores,
     gameOver,
+    lastError,
   }
 }
