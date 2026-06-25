@@ -34,8 +34,8 @@ export function extractWordsFormed(
     tempBoard[p.row][p.col] = newTiles[i]
   })
 
-  // Enforce unique words based on string content to prevent
-  // overcounting duplicate sequences in a single turn.
+  // Collect every formed word, including repeated letter sequences
+  // at distinct board positions, so each occurrence is scored.
   const words: FormedWord[] = []
 
   const isHorizontal = placements.every((p) => p.row === placements[0].row)
