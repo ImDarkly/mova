@@ -3,18 +3,22 @@ import { Tile } from "./types"
 type Board = (Tile | null)[][]
 type Placement = { row: number; col: number }
 
+export type FormedWord = { word: string; tiles: Tile[] }
+
 export function extractWordsFormed(
   placements: Placement[],
   board: Board,
   newTiles: Tile[]
-): string[] {
+): FormedWord[] {
+  // Reject invalid state transitions early.
   if (placements.length === 0 || placements.length !== newTiles.length)
     return []
 
-  // Used to prevent accidental mutation of the actual game state.
+  // Isolate board state to permit speculative scoring without
+  // side effects on the actual game state.
   const tempBoard = board.map((row) => [...row])
-  // Validate all placements upfront. If any are out of bounds,
-  // reject the entire operation to prevent partial/invalid states.
+
+  // Ensure all placements fall within board boundaries.
   const isAnyInvalid = placements.some(
     (p) =>
       p.row < 0 ||
@@ -25,90 +29,49 @@ export function extractWordsFormed(
 
   if (isAnyInvalid) return []
 
-  // Process valid placements
+  // Apply pending tiles to the simulation board.
   placements.forEach((p, i) => {
     tempBoard[p.row][p.col] = newTiles[i]
   })
 
-  // A Set ensures we only return unique words, satisfying the requirement.
-  const words = new Set<string>()
+  // Enforce unique words based on string content to prevent
+  // overcounting duplicate sequences in a single turn.
+  const words = new Map<string, FormedWord>()
 
   const isHorizontal = placements.every((p) => p.row === placements[0].row)
   const isVertical = placements.every((p) => p.col === placements[0].col)
 
   if (!isHorizontal && !isVertical) return []
 
-  // Identify the primary word created by the move.
-  if (isHorizontal) {
-    const word = getWordAt(
-      tempBoard,
-      placements[0].row,
-      placements[0].col,
-      0,
-      1
-    )
-    // Rules dictate a word must be at least 2 letters long.
-    if (word.length >= 2) words.add(word)
-  } else if (isVertical) {
-    const word = getWordAt(
-      tempBoard,
-      placements[0].row,
-      placements[0].col,
-      1,
-      0
-    )
-    if (word.length >= 2) words.add(word)
+  // Encapsulate tile collection and word string generation to
+  // avoid repeated traversal logic.
+  const addWord = (dx: number, dy: number, row: number, col: number) => {
+    const tiles = getWordTilesAt(tempBoard, row, col, dx, dy)
+    // Standard Scrabble rules: words must contain 2+ tiles.
+    if (tiles.length >= 2) {
+      const word = tiles
+        .map((t) => t.letter)
+        .join("")
+        .toUpperCase()
+      words.set(word, { word, tiles })
+    }
   }
 
-  // Identify any perpendicular words created by the newly placed tiles.
+  // Capture primary word based on move orientation.
+  if (isHorizontal) {
+    addWord(0, 1, placements[0].row, placements[0].col)
+  } else if (isVertical) {
+    addWord(1, 0, placements[0].row, placements[0].col)
+  }
+
+  // Capture secondary/perpendicular words created by the new tiles.
   placements.forEach((p) => {
     const dx = isHorizontal ? 1 : 0
     const dy = isHorizontal ? 0 : 1
-    const word = getWordAt(tempBoard, p.row, p.col, dx, dy)
-    if (word.length >= 2) words.add(word)
+    addWord(dx, dy, p.row, p.col)
   })
 
-  return Array.from(words).map((w) => w.toUpperCase())
-}
-
-function getWordAt(
-  board: Board,
-  row: number,
-  col: number,
-  dx: number,
-  dy: number
-): string {
-  let word = ""
-
-  // Backtrack to find the true beginning of the word,
-  // as the placement might be in the middle of an existing sequence.
-  let r = row
-  let c = col
-  while (
-    r - dx >= 0 &&
-    r - dx < board.length &&
-    c - dy >= 0 &&
-    c - dy < board[r - dx].length &&
-    board[r - dx][c - dy] !== null
-  ) {
-    r -= dx
-    c -= dy
-  }
-
-  // Iterate forward to reconstruct the full sequence.
-  while (
-    r < board.length &&
-    board[r] &&
-    c >= 0 &&
-    c < board[r].length &&
-    board[r][c] !== null
-  ) {
-    word += board[r][c]!.letter
-    r += dx
-    c += dy
-  }
-
-  return word
+  return Array.from(words.values())
 }
 
 // NOTE: The board traversal logic below is intentionally duplicated from getWordAt.
@@ -164,55 +127,17 @@ export function calculateTurnScore(
   board: Board,
   newTiles: Tile[]
 ): number {
-  // Temporary board for scoring calculation
-  const tempBoard = board.map((row) => [...row])
-  placements.forEach((p, i) => {
-    tempBoard[p.row][p.col] = newTiles[i]
-  })
+  const formedWords = extractWordsFormed(placements, board, newTiles)
 
-  let totalScore = 0
-  const wordsTiles: Tile[][] = []
+  // Create a Set for O(1) lookup of tiles that were placed this turn
+  const newTileSet = new Set(newTiles)
 
-  const isHorizontal = placements.every((p) => p.row === placements[0].row)
-  const isVertical = placements.every((p) => p.col === placements[0].col)
+  return formedWords.reduce((totalScore, formedWord) => {
+    // Score only the tiles that are in our newTileSet
+    const wordScore = formedWord.tiles.reduce((sum, tile) => {
+      return sum + (newTileSet.has(tile) ? tile.points : 0)
+    }, 0)
 
-  // Identify words formed
-  if (isHorizontal) {
-    const wordTiles = getWordTilesAt(
-      tempBoard,
-      placements[0].row,
-      placements[0].col,
-      0,
-      1
-    )
-    if (wordTiles.length >= 2) wordsTiles.push(wordTiles)
-  } else if (isVertical) {
-    const wordTiles = getWordTilesAt(
-      tempBoard,
-      placements[0].row,
-      placements[0].col,
-      1,
-      0
-    )
-    if (wordTiles.length >= 2) wordsTiles.push(wordTiles)
-  }
-
-  placements.forEach((p) => {
-    const dx = isHorizontal ? 1 : 0
-    const dy = isHorizontal ? 0 : 1
-    const wordTiles = getWordTilesAt(tempBoard, p.row, p.col, dx, dy)
-    if (wordTiles.length >= 2) {
-      // Ensure we don't double count if the same word was already added
-      if (!wordsTiles.some((wt) => wt === wordTiles)) {
-        wordsTiles.push(wordTiles)
-      }
-    }
-  })
-
-  // Sum points (standard Scrabble: sum of all tiles in formed words)
-  wordsTiles.forEach((word) => {
-    totalScore += word.reduce((sum, tile) => sum + tile.points, 0)
-  })
-
-  return totalScore
+    return totalScore + wordScore
+  }, 0)
 }
