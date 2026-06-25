@@ -36,7 +36,7 @@ export function extractWordsFormed(
 
   // Enforce unique words based on string content to prevent
   // overcounting duplicate sequences in a single turn.
-  const words = new Map<string, FormedWord>()
+  const words: FormedWord[] = []
 
   const isHorizontal = placements.every((p) => p.row === placements[0].row)
   const isVertical = placements.every((p) => p.col === placements[0].col)
@@ -53,7 +53,7 @@ export function extractWordsFormed(
         .map((t) => t.letter)
         .join("")
         .toUpperCase()
-      words.set(word, { word, tiles })
+      words.push({ word, tiles })
     }
   }
 
@@ -71,7 +71,7 @@ export function extractWordsFormed(
     addWord(dx, dy, p.row, p.col)
   })
 
-  return Array.from(words.values())
+  return words
 }
 
 // NOTE: The board traversal logic below is intentionally duplicated from getWordAt.
@@ -129,13 +129,10 @@ export function calculateTurnScore(
 ): number {
   const formedWords = extractWordsFormed(placements, board, newTiles)
 
-  // Create a Set for O(1) lookup of tiles that were placed this turn
-  const newTileSet = new Set(newTiles)
-
   return formedWords.reduce((totalScore, formedWord) => {
-    // Score only the tiles that are in our newTileSet
+    // Score the full word using all its tiles
     const wordScore = formedWord.tiles.reduce((sum, tile) => {
-      return sum + (newTileSet.has(tile) ? tile.points : 0)
+      return sum + tile.points
     }, 0)
 
     return totalScore + wordScore
