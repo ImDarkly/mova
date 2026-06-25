@@ -147,7 +147,14 @@ export class GameState {
       rackIndices.add(rackIndex)
     }
 
-    const words = extractWordsFormed(validatedPlacements, this.board, newTiles)
+    const formedWords = extractWordsFormed(
+      validatedPlacements,
+      this.board,
+      newTiles
+    )
+    // Extract the strings for validation against the dictionary
+    const words = formedWords.map((fw) => fw.word)
+
     if (words.length === 0) {
       return {
         success: false,
