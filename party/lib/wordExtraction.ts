@@ -124,6 +124,9 @@ export function getWordTilesAt(
   dx: number,
   dy: number
 ): Tile[] {
+  // Invalid direction: must traverse in at least one axis
+  if (dx === 0 && dy === 0) return []
+
   let r = row
   let c = col
 
