@@ -2,7 +2,7 @@ import { BOARD_SIZE, MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "../constants"
 import { buildBag, drawTiles, refillRack, shuffleBag } from "./bag"
 import { isPlacement, type Player, type Tile } from "./types"
 import { advanceToNextConnectedPlayer, findFirstConnectedPlayer } from "./turns"
-import { extractWordsFormed } from "./wordExtraction"
+import { calculateTurnScore, extractWordsFormed } from "./wordExtraction"
 import {
   isValidWithBlank,
   validatePlacements,
@@ -167,9 +167,11 @@ export class GameState {
       this.board[row][col] = player.rack[rackIndex]
     }
 
-    const turnScore = validatedPlacements.reduce((sum, { rackIndex }) => {
-      return sum + (player.rack[rackIndex]?.points ?? 0)
-    }, 0)
+    const turnScore = calculateTurnScore(
+      validatedPlacements,
+      this.board,
+      newTiles
+    )
     player.score += turnScore
 
     const indices = this.getValidatedRackIndices(placements)

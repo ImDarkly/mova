@@ -110,3 +110,106 @@ function getWordAt(
 
   return word
 }
+
+// NOTE: The board traversal logic below is intentionally duplicated from getWordAt.
+// This is a deliberate choice to maintain SRP (cohesion) and adhere to project
+// constraints against refactoring existing, stable code ("Don't refactor things
+// that aren't broken"). This keeps the changes surgical and avoids introducing
+// speculative abstractions for single-use logic.
+
+export function getWordTilesAt(
+  board: Board,
+  row: number,
+  col: number,
+  dx: number,
+  dy: number
+): Tile[] {
+  let r = row
+  let c = col
+
+  // Backtrack to find the true beginning of the word
+  while (
+    r - dx >= 0 &&
+    r - dx < board.length &&
+    c - dy >= 0 &&
+    c - dy < board[r - dx].length &&
+    board[r - dx][c - dy] !== null
+  ) {
+    r -= dx
+    c -= dy
+  }
+
+  // Iterate forward to collect all tiles
+  const tiles: Tile[] = []
+  while (
+    r < board.length &&
+    board[r] &&
+    c >= 0 &&
+    c < board[r].length &&
+    board[r][c] !== null
+  ) {
+    tiles.push(board[r][c]!)
+    r += dx
+    c += dy
+  }
+
+  return tiles
+}
+
+export function calculateTurnScore(
+  placements: Placement[],
+  board: Board,
+  newTiles: Tile[]
+): number {
+  // Temporary board for scoring calculation
+  const tempBoard = board.map((row) => [...row])
+  placements.forEach((p, i) => {
+    tempBoard[p.row][p.col] = newTiles[i]
+  })
+
+  let totalScore = 0
+  const wordsTiles: Tile[][] = []
+
+  const isHorizontal = placements.every((p) => p.row === placements[0].row)
+  const isVertical = placements.every((p) => p.col === placements[0].col)
+
+  // Identify words formed
+  if (isHorizontal) {
+    const wordTiles = getWordTilesAt(
+      tempBoard,
+      placements[0].row,
+      placements[0].col,
+      0,
+      1
+    )
+    if (wordTiles.length >= 2) wordsTiles.push(wordTiles)
+  } else if (isVertical) {
+    const wordTiles = getWordTilesAt(
+      tempBoard,
+      placements[0].row,
+      placements[0].col,
+      1,
+      0
+    )
+    if (wordTiles.length >= 2) wordsTiles.push(wordTiles)
+  }
+
+  placements.forEach((p) => {
+    const dx = isHorizontal ? 1 : 0
+    const dy = isHorizontal ? 0 : 1
+    const wordTiles = getWordTilesAt(tempBoard, p.row, p.col, dx, dy)
+    if (wordTiles.length >= 2) {
+      // Ensure we don't double count if the same word was already added
+      if (!wordsTiles.some((wt) => wt === wordTiles)) {
+        wordsTiles.push(wordTiles)
+      }
+    }
+  })
+
+  // Sum points (standard Scrabble: sum of all tiles in formed words)
+  wordsTiles.forEach((word) => {
+    totalScore += word.reduce((sum, tile) => sum + tile.points, 0)
+  })
+
+  return totalScore
+}
