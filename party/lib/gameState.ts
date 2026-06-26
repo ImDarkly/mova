@@ -2,7 +2,12 @@ import { BOARD_SIZE, MAX_PLAYERS, MIN_PLAYERS, RACK_SIZE } from "../constants"
 import { buildBag, drawTiles, refillRack, shuffleBag } from "./bag"
 import { isPlacement, type Player, type Tile } from "./types"
 import { advanceToNextConnectedPlayer, findFirstConnectedPlayer } from "./turns"
-import { SubmitErrorCode, validatePlacements } from "./validation"
+import { calculateTurnScore, extractWordsFormed } from "./wordExtraction"
+import {
+  isValidWithBlank,
+  validatePlacements,
+  type ValidationError,
+} from "./validation"
 
 export interface PlayerConnectResult {
   isNewPlayer: boolean
@@ -15,7 +20,7 @@ export interface ToggleReadyResult {
 
 export type SubmitTurnResult =
   | { success: true; turnScore: number }
-  | { success: false; error: SubmitErrorCode }
+  | { success: false; error: ValidationError }
 
 export interface HandleReconnectResult {
   gameOver: boolean
@@ -111,30 +116,75 @@ export class GameState {
       ? placements.filter(isPlacement)
       : []
 
-    const result = validatePlacements(validatedPlacements, this.board)
-    if (!result.valid) {
-      return { success: false, error: result.error }
+    // Validate geometry and connectivity before modifying any game state
+    // to ensure an "atomic" operation—if anything fails, the board remains unchanged.
+    const geomResult = validatePlacements(validatedPlacements, this.board)
+    if (!geomResult.valid) {
+      return { success: false, error: geomResult }
     }
+
+    // Verify all newly formed words against the dictionary.
+    // Validation must run before state update to reject illegal moves.
+    const newTiles = validatedPlacements.map(
+      ({ rackIndex }) => player.rack[rackIndex]
+    )
 
     // Validate rackIndex bounds and uniqueness
     const rackIndices = new Set<number>()
     for (const { rackIndex } of validatedPlacements) {
+      if (!Number.isInteger(rackIndex)) {
+        return {
+          success: false,
+          error: { valid: false, error: "INVALID_RACK_INDEX" },
+        }
+      }
       if (rackIndex < 0 || rackIndex >= player.rack.length) {
-        return { success: false, error: "OUT_OF_BOUNDS" }
+        return {
+          success: false,
+          error: { valid: false, error: "OUT_OF_BOUNDS" },
+        }
       }
       if (rackIndices.has(rackIndex)) {
-        return { success: false, error: "DUPLICATE_COORDINATE" }
+        return {
+          success: false,
+          error: { valid: false, error: "DUPLICATE_COORDINATE" },
+        }
       }
       rackIndices.add(rackIndex)
+    }
+
+    const formedWords = extractWordsFormed(
+      validatedPlacements,
+      this.board,
+      newTiles
+    )
+    // Extract the strings for validation against the dictionary
+    const words = formedWords.map((fw) => fw.word)
+
+    if (words.length === 0) {
+      return {
+        success: false,
+        error: { valid: false, error: "INVALID_WORD", invalidWords: [] },
+      }
+    }
+    const invalidWords = words.filter((word) => !isValidWithBlank(word))
+
+    if (invalidWords.length > 0) {
+      return {
+        success: false,
+        error: { valid: false, error: "INVALID_WORD", invalidWords },
+      }
     }
 
     for (const { row, col, rackIndex } of validatedPlacements) {
       this.board[row][col] = player.rack[rackIndex]
     }
 
-    const turnScore = validatedPlacements.reduce((sum, { rackIndex }) => {
-      return sum + (player.rack[rackIndex]?.points ?? 0)
-    }, 0)
+    const turnScore = calculateTurnScore(
+      validatedPlacements,
+      this.board,
+      newTiles
+    )
     player.score += turnScore
 
     const indices = this.getValidatedRackIndices(placements)

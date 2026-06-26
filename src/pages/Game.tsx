@@ -36,6 +36,7 @@ function GameSessionView({ roomId }: { roomId: string }) {
     send,
     scores,
     gameOver,
+    lastError,
   } = useGameSession(roomId)
   const {
     rack,
@@ -59,6 +60,12 @@ function GameSessionView({ roomId }: { roomId: string }) {
       activationConstraint: { distance: 10 },
     })
   )
+
+  useEffect(() => {
+    if (lastError?.type === "SUBMIT_ERROR") {
+      isSubmittingRef.current = false
+    }
+  }, [lastError])
 
   useEffect(() => {
     if (isSubmittingRef.current) {

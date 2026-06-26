@@ -1,10 +1,11 @@
+import sowpods from "pf-sowpods"
 import { Tile } from "./types"
 
 type Placement = { rackIndex: number; row: number; col: number }
-type ValidationResult =
-  | { valid: true }
-  | {
-      valid: false
+type BaseError = { valid: false }
+
+export type ValidationError =
+  | (BaseError & {
       error:
         | "NO_TILES"
         | "NOT_IN_LINE"
@@ -13,11 +14,52 @@ type ValidationResult =
         | "OUT_OF_BOUNDS"
         | "CELL_OCCUPIED"
         | "DUPLICATE_COORDINATE"
+    })
+  | (BaseError & {
+      error: "INVALID_WORD"
+      invalidWords: string[]
+    })
+
+export type ValidationResult = { valid: true } | ValidationError
+
+const dictionary = new Set(sowpods.map((w: string) => w.toUpperCase()))
+const blankCache = new Map<string, boolean>()
+
+export function isValidWord(word: string): boolean {
+  if (!word) return false
+  return dictionary.has(word.toUpperCase())
+}
+
+export function isValidWithBlank(word: string): boolean {
+  if (!word) return false
+  const normalized = word.toUpperCase()
+  if (blankCache.has(normalized)) {
+    return blankCache.get(normalized)!
+  }
+
+  function canFormValidWord(currentWord: string): boolean {
+    const blankIndex = currentWord.indexOf("?")
+    if (blankIndex === -1) {
+      return dictionary.has(currentWord)
     }
-export type SubmitErrorCode = Extract<
-  ValidationResult,
-  { valid: false }
->["error"]
+
+    for (let i = 0; i < 26; i++) {
+      const char = String.fromCharCode(65 + i)
+      const nextWord =
+        currentWord.substring(0, blankIndex) +
+        char +
+        currentWord.substring(blankIndex + 1)
+      if (canFormValidWord(nextWord)) {
+        return true
+      }
+    }
+    return false
+  }
+
+  const isValid = canFormValidWord(normalized)
+  blankCache.set(normalized, isValid)
+  return isValid
+}
 
 export function validatePlacements(
   placements: Placement[],

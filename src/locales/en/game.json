@@ -28,6 +28,10 @@
       "DUPLICATE_COORDINATE": {
         "title": "Duplicate placement",
         "description": "You placed more than one tile in the same cell."
+      },
+      "INVALID_WORD": {
+        "title": "Invalid word",
+        "description": "The following words are not in our dictionary: {{words}}"
       }
     },
     "connection": {
