@@ -59,11 +59,15 @@ export function useGameSession(roomId: string) {
               `errors.submit.${msg.error}.title`,
               "Submission Error"
             )
-            const description = t(
-              `errors.submit.${msg.error}.description`,
-              "An error occurred while submitting.",
-              { words: (msg.invalidWords ?? []).join(", ") }
-            )
+            const invalidWords = msg.invalidWords ?? []
+            const description =
+              invalidWords.length > 0
+                ? t(
+                    `errors.submit.${msg.error}.description`,
+                    "An error occurred while submitting.",
+                    { words: invalidWords.join(", ") }
+                  )
+                : "The words you placed are not in our dictionary."
 
             toast.error(title, { description })
             setLastError(msg)

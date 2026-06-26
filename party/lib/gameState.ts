@@ -132,6 +132,12 @@ export class GameState {
     // Validate rackIndex bounds and uniqueness
     const rackIndices = new Set<number>()
     for (const { rackIndex } of validatedPlacements) {
+      if (!Number.isInteger(rackIndex)) {
+        return {
+          success: false,
+          error: { valid: false, error: "INVALID_RACK_INDEX" },
+        }
+      }
       if (rackIndex < 0 || rackIndex >= player.rack.length) {
         return {
           success: false,
