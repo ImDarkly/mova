@@ -4,7 +4,7 @@ export const useLeaveRoom = () => {
   const navigate = useNavigate()
 
   return () => {
-    // TODO: notify PartyKit other players you left
+    // TODO: notify PartyServer other players you left
     navigate("/")
   }
 }

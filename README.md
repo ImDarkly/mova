@@ -4,19 +4,19 @@ A real-time multiplayer word tile game for 2–4 players. Create a room, share a
 
 ## Tech Stack
 
-| Layer | Technology |
-|---|---|
-| Frontend | React 19, TypeScript, Vite |
-| Styling | Tailwind CSS v4, shadcn/ui (base-luma) |
-| Drag & drop | dnd-kit |
-| Realtime | PartyKit (WebSockets) |
-| Routing | React Router v7 |
-| i18n | i18next |
+| Layer       | Technology                                     |
+| ----------- | ---------------------------------------------- |
+| Frontend    | React 19, TypeScript, Vite                     |
+| Styling     | Tailwind CSS v4, shadcn/ui (base-luma)         |
+| Drag & drop | dnd-kit                                        |
+| Realtime    | PartyServer (WebSockets on Cloudflare Workers) |
+| Routing     | React Router v7                                |
+| i18n        | i18next                                        |
 
 ## Architecture
 
 ```
-browser (React)  ←——WebSocket——→  PartyKit server (party/index.ts)
+browser (React)  ←——WebSocket——→  PartyServer worker (party/index.ts)
 ```
 
 **Client** manages UI state: tile assignments, drag interactions, local session.
@@ -25,23 +25,23 @@ browser (React)  ←——WebSocket——→  PartyKit server (party/index.ts)
 
 ### Message flow
 
-| Direction | Message | When |
-|---|---|---|
+| Direction       | Message             | When                          |
+| --------------- | ------------------- | ----------------------------- |
 | client → server | `READY` / `UNREADY` | Player toggles ready in lobby |
-| client → server | `SUBMIT_TURN` | Player submits placed tiles |
-| server → client | `ROOM_STATE` | Player joins or leaves |
-| server → client | `GAME_START` | All players ready |
-| server → client | `RACK_STATE` | Game start or after turn |
-| server → client | `BOARD_STATE` | After each valid turn |
-| server → client | `TURN_CHANGE` | After each valid turn |
-| server → client | `SUBMIT_ERROR` | Invalid placement |
-| server → client | `GAME_OVER` | Bag empty, rack empty |
+| client → server | `SUBMIT_TURN`       | Player submits placed tiles   |
+| server → client | `ROOM_STATE`        | Player joins or leaves        |
+| server → client | `GAME_START`        | All players ready             |
+| server → client | `RACK_STATE`        | Game start or after turn      |
+| server → client | `BOARD_STATE`       | After each valid turn         |
+| server → client | `TURN_CHANGE`       | After each valid turn         |
+| server → client | `SUBMIT_ERROR`      | Invalid placement             |
+| server → client | `GAME_OVER`         | Bag empty, rack empty         |
 
 ### Key files
 
 ```
 party/
-  index.ts          — PartyKit entry: onConnect, onClose, onMessage
+  index.ts          — PartyServer entry: onConnect, onClose, onMessage
   lib/gameState.ts  — All game logic (pure class, no I/O)
   lib/validation.ts — Placement rules (line, gaps, connectivity)
   lib/bag.ts        — Tile bag: build, shuffle, draw, refill
@@ -60,7 +60,7 @@ src/
 
 ```bash
 npm install
-npm run dev:all     # starts Vite (localhost:5173) + PartyKit (localhost:1999)
+npm run dev:all     # starts Vite (localhost:5173) + Wrangler/PartyServer (localhost:1999)
 ```
 
 Open `http://localhost:5173` in two browser tabs to test multiplayer locally.

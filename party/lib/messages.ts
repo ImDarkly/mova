@@ -1,37 +1,41 @@
-import type * as Party from "partykit/server"
+import type { Connection } from "partyserver"
+import type { MovaServer } from "../index"
 import type { PublicPlayer, Tile } from "./types"
 import type { ValidationError } from "./validation"
 
-export function broadcastRoomState(room: Party.Room, players: PublicPlayer[]) {
-  room.broadcast(JSON.stringify({ type: "ROOM_STATE", players }))
+export function broadcastRoomState(
+  server: MovaServer,
+  players: PublicPlayer[]
+) {
+  server.broadcast(JSON.stringify({ type: "ROOM_STATE", players }))
 }
 
 export function broadcastTurnChange(
-  room: Party.Room,
+  server: MovaServer,
   currentTurn: string | null,
   scores: Record<string, number>
 ) {
-  room.broadcast(JSON.stringify({ type: "TURN_CHANGE", currentTurn, scores }))
+  server.broadcast(JSON.stringify({ type: "TURN_CHANGE", currentTurn, scores }))
 }
 
 export function broadcastGameStart(
-  room: Party.Room,
+  server: MovaServer,
   currentTurn: string | null,
   scores: Record<string, number>
 ) {
-  room.broadcast(JSON.stringify({ type: "GAME_START", currentTurn, scores }))
+  server.broadcast(JSON.stringify({ type: "GAME_START", currentTurn, scores }))
 }
 
-export function sendRack(conn: Party.Connection, tiles: Tile[]) {
+export function sendRack(conn: Connection, tiles: Tile[]) {
   conn.send(JSON.stringify({ type: "RACK_STATE", tiles }))
 }
 
-export function sendRoomFull(conn: Party.Connection) {
+export function sendRoomFull(conn: Connection) {
   conn.send(JSON.stringify({ type: "ROOM_FULL" }))
 }
 
 export function sendGameStart(
-  conn: Party.Connection,
+  conn: Connection,
   currentTurn: string | null,
   scores: Record<string, number>
 ) {
@@ -39,7 +43,7 @@ export function sendGameStart(
 }
 
 export function broadcastBoardState(
-  room: Party.Room,
+  server: MovaServer,
   board: (Tile | null)[][]
 ) {
   const flat: Record<string, Tile> = {}
@@ -52,20 +56,17 @@ export function broadcastBoardState(
       }
     }
   }
-  room.broadcast(JSON.stringify({ type: "BOARD_STATE", board: flat }))
+  server.broadcast(JSON.stringify({ type: "BOARD_STATE", board: flat }))
 }
 
-export function sendSubmitError(
-  conn: Party.Connection,
-  error: ValidationError
-) {
+export function sendSubmitError(conn: Connection, error: ValidationError) {
   conn.send(JSON.stringify({ type: "SUBMIT_ERROR", ...error }))
 }
 
 export function broadcastGameOver(
-  room: Party.Room,
+  server: MovaServer,
   winnerIds: string[],
   scores: Record<string, number>
 ) {
-  room.broadcast(JSON.stringify({ type: "GAME_OVER", winnerIds, scores }))
+  server.broadcast(JSON.stringify({ type: "GAME_OVER", winnerIds, scores }))
 }

@@ -1,0 +1,10 @@
+{
+  "name": "mova-party",
+  "main": "party/index.ts",
+  "compatibility_date": "2026-04-04",
+  "compatibility_flags": ["nodejs_compat"],
+  "durable_objects": {
+    "bindings": [{ "name": "Main", "class_name": "MovaServer" }],
+  },
+  "migrations": [{ "tag": "v1", "new_sqlite_classes": ["MovaServer"] }],
+}

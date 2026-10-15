@@ -1,4 +1,5 @@
-import type * as Party from "partykit/server"
+import { routePartykitRequest, Server } from "partyserver"
+import type { Connection, WSMessage } from "partyserver"
 import { GameState } from "./lib/gameState"
 import { toPublicPlayer, type Tile } from "./lib/types"
 import {
@@ -13,14 +14,16 @@ import {
   sendSubmitError,
 } from "./lib/messages"
 
-export default class Server implements Party.Server {
+type Env = {
+  Main: DurableObjectNamespace<MovaServer>
+}
+
+export class MovaServer extends Server<Env> {
   gameState = new GameState()
 
-  constructor(readonly room: Party.Room) {}
-
-  onConnect(conn: Party.Connection) {
-    const url = new URL(conn.uri)
-    const name = url.searchParams.get("name")?.trim() || conn.id
+  onConnect(conn: Connection) {
+    const url = conn.uri ? new URL(conn.uri) : null
+    const name = url?.searchParams.get("name")?.trim() || conn.id
 
     const result = this.gameState.playerConnect(conn.id, name)
 
@@ -48,7 +51,7 @@ export default class Server implements Party.Server {
         )
         if (reconnectResult.currentTurn) {
           broadcastTurnChange(
-            this.room,
+            this,
             reconnectResult.currentTurn,
             reconnectResult.scores
           )
@@ -59,35 +62,36 @@ export default class Server implements Party.Server {
       sendGameStart(conn, reconnectResult.currentTurn, reconnectResult.scores)
       this.sendBoardState(conn, reconnectResult.board)
       broadcastTurnChange(
-        this.room,
+        this,
         reconnectResult.currentTurn,
         reconnectResult.scores
       )
     }
 
     broadcastRoomState(
-      this.room,
+      this,
       Object.values(this.gameState.players).map(toPublicPlayer)
     )
   }
 
-  onClose(conn: Party.Connection) {
+  onClose(conn: Connection) {
     this.gameState.playerDisconnect(conn.id)
 
     if (this.gameState.gameStarted) {
       const scores = this.getScores()
       if (this.gameState.currentTurn) {
-        broadcastTurnChange(this.room, this.gameState.currentTurn, scores)
+        broadcastTurnChange(this, this.gameState.currentTurn, scores)
       }
     }
 
     broadcastRoomState(
-      this.room,
+      this,
       Object.values(this.gameState.players).map(toPublicPlayer)
     )
   }
 
-  onMessage(message: string, sender: Party.Connection) {
+  onMessage(sender: Connection, message: WSMessage) {
+    if (typeof message !== "string") return
     let msg: unknown
     try {
       msg = JSON.parse(message)
@@ -118,31 +122,27 @@ export default class Server implements Party.Server {
     }
   }
 
-  private handleReadyToggle(sender: Party.Connection, ready: boolean) {
+  private handleReadyToggle(sender: Connection, ready: boolean) {
     const result = this.gameState.toggleReady(sender.id, ready)
 
     if (result.shouldStartGame) {
-      broadcastGameStart(
-        this.room,
-        this.gameState.currentTurn,
-        this.getScores()
-      )
+      broadcastGameStart(this, this.gameState.currentTurn, this.getScores())
       for (const id in this.gameState.players) {
         const player = this.gameState.players[id]
-        const conn = this.room.getConnection(id)
+        const conn = this.getConnection(id)
         if (conn) {
           sendRack(conn, player.rack)
         }
       }
     } else {
       broadcastRoomState(
-        this.room,
+        this,
         Object.values(this.gameState.players).map(toPublicPlayer)
       )
     }
   }
 
-  private handleSubmitTurn(sender: Party.Connection, placements: unknown) {
+  private handleSubmitTurn(sender: Connection, placements: unknown) {
     if (sender.id !== this.gameState.currentTurn) {
       return
     }
@@ -161,22 +161,22 @@ export default class Server implements Party.Server {
     if (!player) {
       return
     }
-    this.room
-      .getConnection(sender.id)
-      ?.send(JSON.stringify({ type: "RACK_STATE", tiles: player.rack }))
+    this.getConnection(sender.id)?.send(
+      JSON.stringify({ type: "RACK_STATE", tiles: player.rack })
+    )
 
-    broadcastBoardState(this.room, this.gameState.board)
+    broadcastBoardState(this, this.gameState.board)
 
     if (this.gameState.gameOver) {
-      broadcastGameOver(this.room, this.gameState.winnerIds, this.getScores())
+      broadcastGameOver(this, this.gameState.winnerIds, this.getScores())
       return
     }
 
     const scores = this.getScores()
-    broadcastTurnChange(this.room, this.gameState.currentTurn, scores)
+    broadcastTurnChange(this, this.gameState.currentTurn, scores)
   }
 
-  private sendBoardState(conn: Party.Connection, board: (Tile | null)[][]) {
+  private sendBoardState(conn: Connection, board: (Tile | null)[][]) {
     conn.send(JSON.stringify({ type: "BOARD_STATE", board }))
   }
 
@@ -188,7 +188,7 @@ export default class Server implements Party.Server {
     return scores
   }
 
-  private handleSkipTurn(sender: Party.Connection) {
+  private handleSkipTurn(sender: Connection) {
     if (sender.id !== this.gameState.currentTurn || this.gameState.gameOver) {
       return
     }
@@ -196,6 +196,15 @@ export default class Server implements Party.Server {
     this.gameState.skipTurn()
 
     const scores = this.getScores()
-    broadcastTurnChange(this.room, this.gameState.currentTurn, scores)
+    broadcastTurnChange(this, this.gameState.currentTurn, scores)
   }
 }
+
+export default {
+  async fetch(request: Request, env: Env): Promise<Response> {
+    return (
+      (await routePartykitRequest(request, env)) ||
+      new Response("Not Found", { status: 404 })
+    )
+  },
+} satisfies ExportedHandler<Env>
