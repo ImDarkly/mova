@@ -14,6 +14,7 @@ export type ValidationError =
         | "OUT_OF_BOUNDS"
         | "CELL_OCCUPIED"
         | "DUPLICATE_COORDINATE"
+        | "INVALID_RACK_INDEX"
     })
   | (BaseError & {
       error: "INVALID_WORD"
