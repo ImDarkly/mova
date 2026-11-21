@@ -55,7 +55,7 @@
 
 :root {
   --text: #3a1f28;
-  --text-muted: #614139;
+  --text-muted: #44262a;
   --surface: rgba(255, 246, 234, 0.9);
   --surface-line: rgba(90, 51, 64, 0.3);
   --turn-bg: rgba(255, 192, 116, 0.35);
@@ -170,6 +170,7 @@ button:disabled {
   min-height: 44px;
   border-radius: 12px;
   font-weight: 900;
+  font-size: 16px;
   box-shadow: none;
 }
 [data-slot="button"]:active {
@@ -256,6 +257,7 @@ button:disabled {
   color: #d8b9a8;
 }
 .card-secondary {
+  font-size: 15px;
   background: transparent !important;
   border: 1px solid rgba(255, 220, 190, 0.5) !important;
   color: #fbeee2 !important;
@@ -334,6 +336,7 @@ button:disabled {
   flex-shrink: 0;
 }
 .room-chip {
+  font-size: 14px;
   background: var(--surface);
   border: 1px solid var(--surface-line);
   color: var(--text);
@@ -502,7 +505,7 @@ button:disabled {
   flex: 1;
   min-height: 0;
   width: 100%;
-  align-items: center;
+  align-items: flex-start;
   justify-content: center;
 }
 .game-board {
@@ -905,5 +908,18 @@ button:disabled {
   .game-tile.selected,
   .game-tile.lifted {
     transform: none;
+  }
+}
+
+/* Focus uses outlines; chrome never casts a shadow. */
+[data-slot="button"]:focus-visible {
+  box-shadow: none;
+}
+.you-pill {
+  text-transform: uppercase;
+}
+@media (min-width: 1024px) {
+  .board-space {
+    align-items: center;
   }
 }

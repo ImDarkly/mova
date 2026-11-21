@@ -5,6 +5,10 @@ import BoardCell from "./BoardCell"
 interface BoardProps {
   boardTiles: Partial<Record<string, TileType>>
   assignments: TileAssignments
+  disabled: boolean
+  selecting: boolean
+  onPlace: (row: number, col: number) => void
+  onReturn: (index: number) => void
 }
 
 function buildAssignmentMap(assignments: TileAssignments): Map<string, number> {
@@ -18,13 +22,20 @@ function buildAssignmentMap(assignments: TileAssignments): Map<string, number> {
   )
 }
 
-export default function Board({ boardTiles, assignments }: BoardProps) {
+export default function Board({
+  boardTiles,
+  assignments,
+  disabled,
+  selecting,
+  onPlace,
+  onReturn,
+}: BoardProps) {
   const assignmentMap = buildAssignmentMap(assignments)
 
   return (
-    <div className="@container size-[min(100cqw,100cqh)] rounded-xl bg-border p-[clamp(4px,1cqw,16px)]">
+    <div className="game-board @container size-[min(100cqw,100cqh)]">
       <div
-        className="grid w-full flex-1 gap-px overflow-hidden rounded-lg"
+        className="grid h-full w-full gap-[2px]"
         style={{ gridTemplateColumns: `repeat(${BOARD_SIZE}, 1fr)` }}
       >
         {Array.from({ length: BOARD_SIZE * BOARD_SIZE }).map((_, i) => {
@@ -33,6 +44,10 @@ export default function Board({ boardTiles, assignments }: BoardProps) {
           return (
             <BoardCell
               key={i}
+              disabled={disabled}
+              selecting={selecting}
+              onPlace={onPlace}
+              onReturn={onReturn}
               row={row}
               col={col}
               boardTile={boardTiles[`${row},${col}`]}

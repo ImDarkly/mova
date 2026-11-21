@@ -1,39 +1,41 @@
 import type { Player } from "@/types/room"
 import { useTranslation } from "react-i18next"
-import { Item, ItemContent, ItemTitle } from "../ui/item"
-import { Badge } from "../ui/badge"
-import { cn } from "@/lib/utils"
-
-interface ScoreBoardItemProps {
-  player: Player
-  isMe: boolean
-  currentTurn?: string
-  score: number
-}
-
+import Pawn from "@/components/Pawn"
 export default function ScoreBoardItem({
   player,
   isMe,
   currentTurn,
   score,
-}: ScoreBoardItemProps) {
+  index,
+}: {
+  player: Player
+  isMe: boolean
+  currentTurn?: string
+  score: number
+  index: number
+}) {
   const { t } = useTranslation("game")
-  const isTurnHolder = player.id === currentTurn
-
+  const turn = player.id === currentTurn
   return (
-    <Item
-      variant={isMe ? "muted" : "default"}
-      className={cn("w-auto", isTurnHolder ? "ring-2 ring-primary" : null)}
+    <div
+      className={`player-score ${turn ? "current-player" : ""}`}
+      aria-current={turn ? "step" : undefined}
     >
-      <ItemContent>
-        <ItemTitle>
+      <Pawn index={index} />
+      <div className="player-name">
+        <span
+          className="block truncate"
+          style={{ opacity: player.connected ? 1 : 0.5 }}
+        >
           {player.name}
-          {isMe && <Badge variant="outline">{t("labels.you")}</Badge>}
-        </ItemTitle>
-      </ItemContent>
-      <ItemContent>
-        <span>{score}</span>
-      </ItemContent>
-    </Item>
+        </span>
+        {!player.connected && (
+          <span className="sr-only">{t("labels.disconnected")}</span>
+        )}
+        {isMe && <span className="self-marker">{t("labels.you")}</span>}
+        {turn && <span className="playing-label">{t("labels.playing")}</span>}
+      </div>
+      <span className="player-points">{score}</span>
+    </div>
   )
 }
