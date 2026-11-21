@@ -25,7 +25,7 @@ export default function Home() {
               value={name}
               onChange={(e) => {
                 setName(e.target.value)
-                setPlayerName(e.target.value.trim())
+                if (e.target.value.trim()) setPlayerName(e.target.value.trim())
               }}
               maxLength={20}
               aria-describedby="name-helper"

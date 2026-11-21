@@ -38,9 +38,11 @@ import { toast } from "sonner"
 function GameTurn({
   roomId,
   session,
+  onLeave,
 }: {
   roomId: string
   session: ReturnType<typeof useGameSession>
+  onLeave: () => void
 }) {
   const { t } = useTranslation("game")
   const {
@@ -68,7 +70,6 @@ function GameTurn({
     error: typeof lastError
   } | null>(null)
   const [skipOpen, setSkipOpen] = useState(false)
-  const [leaveOpen, setLeaveOpen] = useState(false)
   const submitting = submission !== null && submission.error === lastError
   const disabled = !isMyTurn || submitting
   const hasPlacements = Object.keys(assignments).length > 0
@@ -152,12 +153,13 @@ function GameTurn({
     >
       <RoomLayout
         roomId={roomId}
+        onLeave={onLeave}
         gameActions={
           <GameMenu
             roomId={roomId}
             disabled={disabled}
             onSkip={() => setSkipOpen(true)}
-            onLeave={() => setLeaveOpen(true)}
+            onLeave={onLeave}
           />
         }
       >
@@ -260,21 +262,31 @@ function GameTurn({
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+    </DndContext>
+  )
+}
+// Player changes and authoritative rack snapshots begin a new draft.
+function GameSessionView({ roomId }: { roomId: string }) {
+  const session = useGameSession(roomId)
+  const [leaveOpen, setLeaveOpen] = useState(false)
+  return (
+    <>
+      {session.gameOver ? (
+        <GameOver players={session.players} result={session.gameOver} />
+      ) : (
+        <GameTurn
+          key={`${session.currentTurn}:${session.rackRevision}`}
+          roomId={roomId}
+          session={session}
+          onLeave={() => setLeaveOpen(true)}
+        />
+      )}
       <LeaveRoomButton
         hideTrigger
         open={leaveOpen}
         onOpenChange={setLeaveOpen}
       />
-    </DndContext>
-  )
-}
-// A new turn starts with an empty draft and no selected tile.
-function GameSessionView({ roomId }: { roomId: string }) {
-  const session = useGameSession(roomId)
-  return session.gameOver ? (
-    <GameOver players={session.players} result={session.gameOver} />
-  ) : (
-    <GameTurn key={session.currentTurn} roomId={roomId} session={session} />
+    </>
   )
 }
 export default function Game() {

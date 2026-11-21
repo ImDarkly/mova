@@ -18,10 +18,12 @@ export default function LeaveRoomButton({
   open,
   onOpenChange,
   hideTrigger = false,
+  onRequestLeave,
 }: {
   open?: boolean
   onOpenChange?: (open: boolean) => void
   hideTrigger?: boolean
+  onRequestLeave?: () => void
 }) {
   const { t } = useTranslation("room")
   const leaveRoom = useLeaveRoom()
@@ -30,18 +32,17 @@ export default function LeaveRoomButton({
     leaveRoom()
   }
 
+  const trigger = (
+    <Button variant="ghost" className="room-chip" onClick={onRequestLeave}>
+      <LogOut size={18} />
+      {t("actions.leaveRoom")}
+    </Button>
+  )
+  if (onRequestLeave) return trigger
+
   return (
     <AlertDialog open={open} onOpenChange={onOpenChange}>
-      {!hideTrigger && (
-        <AlertDialogTrigger
-          render={
-            <Button variant="ghost" className="room-chip">
-              <LogOut size={18} />
-              {t("actions.leaveRoom")}
-            </Button>
-          }
-        />
-      )}
+      {!hideTrigger && <AlertDialogTrigger render={trigger} />}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t("dialogs.leaveRoom.title")}</AlertDialogTitle>

@@ -4,9 +4,11 @@ import RoomIdDisplay from "./RoomIdDisplay"
 export default function RoomHeader({
   roomId,
   gameActions,
+  onLeave,
 }: {
   roomId: string
   gameActions?: ReactNode
+  onLeave?: () => void
 }) {
   return (
     <header className="room-header">
@@ -22,7 +24,7 @@ export default function RoomHeader({
         {gameActions ? (
           <>
             <div className="hidden lg:block">
-              <LeaveRoomButton />
+              <LeaveRoomButton onRequestLeave={onLeave} />
             </div>
             {gameActions}
           </>

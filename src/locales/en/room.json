@@ -5,7 +5,8 @@
     "leaveRoom": "Leave",
     "copyRoomLink": "Copy link",
     "copyInvite": "Copy invite link",
-    "imReady": "I'm ready"
+    "imReady": "I'm ready",
+    "copyInviteForRoom": "{{room}} {{roomId}} — Copy invite link"
   },
   "labels": {
     "you": "You",
@@ -16,7 +17,7 @@
     "invite": "Invite a friend",
     "startsReady": "The game starts when everyone is ready.",
     "readyCount": "{{ready}} of {{total}} ready",
-    "waiting": "Waiting for {{names}}\u2026"
+    "waiting": "Waiting for {{names}}…"
   },
   "player": {
     "ready": "Ready",

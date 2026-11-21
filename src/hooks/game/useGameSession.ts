@@ -13,6 +13,7 @@ export function useGameSession(roomId: string) {
   const { t } = useTranslation("game")
   const navigate = useNavigate()
   const [tiles, setTiles] = useState<TileType[]>([])
+  const [rackRevision, setRackRevision] = useState(0)
   const intentionalClose = useRef(false)
   const myId = getClientId()
   const [currentTurn, setCurrentTurn] = useState<string>("")
@@ -39,6 +40,8 @@ export function useGameSession(roomId: string) {
         switch (msg.type) {
           case "RACK_STATE":
             setTiles(msg.tiles)
+            // The server sends a fresh rack after accepting a word, even for the same player.
+            setRackRevision((revision) => revision + 1)
             break
           case "TURN_CHANGE":
             setCurrentTurn(msg.currentTurn)
@@ -107,6 +110,7 @@ export function useGameSession(roomId: string) {
 
   return {
     tiles,
+    rackRevision,
     players,
     currentTurn,
     isMyTurn,

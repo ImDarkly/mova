@@ -187,6 +187,7 @@ button:disabled {
 }
 .page-shell {
   height: 100%;
+  overflow-y: auto;
   min-height: 0;
   width: 100%;
   padding: max(16px, env(safe-area-inset-top))
@@ -200,8 +201,8 @@ button:disabled {
 .page-column {
   width: 100%;
   max-width: 420px;
-  min-height: 0;
-  flex: 1;
+  min-height: min-content;
+  flex: 1 0 auto;
   display: flex;
   flex-direction: column;
   gap: 18px;
@@ -385,7 +386,7 @@ button:disabled {
   padding: 5px 8px;
   border-radius: 8px;
   background: rgba(255, 255, 255, 0.08);
-  color: #d8b9a8;
+  color: #fbeee2;
   white-space: nowrap;
 }
 .status-chip.ready {
@@ -436,11 +437,11 @@ button:disabled {
 }
 @media (min-width: 1024px) {
   .page-shell {
-    justify-content: center;
+    justify-content: safe center;
     padding: 24px;
   }
   .page-column {
-    flex: 0 1 auto;
+    flex: 0 0 auto;
   }
   .page-action {
     margin-top: 0;

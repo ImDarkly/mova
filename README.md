@@ -65,6 +65,16 @@ npm run dev:all     # starts Vite (localhost:5173) + Wrangler/PartyServer (local
 
 Open `http://localhost:5173` in two browser tabs to test multiplayer locally.
 
+## UI regression tests
+
+```bash
+npm run test:ui
+```
+
+The tests start their own Vite server and use fixed WebSocket responses, so no PartyServer instance is needed. They cover accepted and rejected submissions, repeated same-player turns, leave confirmations, short-screen scrolling, accessible room labels, and keyboard placement.
+
+On Windows the tests use installed Google Chrome. On other systems, install the test browser first with `npx playwright install chromium`.
+
 ## Features
 
 - Create a room and share a 6-char link — auto-copied to clipboard

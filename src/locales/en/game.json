@@ -71,18 +71,18 @@
   "actions": {
     "returnAll": "Return tiles to rack",
     "play": "Play word",
-    "playing": "Playing\u2026",
+    "playing": "Playing…",
     "skip": "Skip turn",
     "more": "More",
-    "leave": "Leave game\u2026"
+    "leave": "Leave game…"
   },
   "status": {
     "yourTurn": "Your turn.",
     "tap": "Tap a tile, then a square.",
     "tapOrDrag": "Tap a tile, then a square, or drag it.",
     "ready": "Press Play word when ready.",
-    "playing": "{{name}} is playing\u2026",
-    "checking": "Checking your word\u2026",
+    "playing": "{{name}} is playing…",
+    "checking": "Checking your word…",
     "waiting": "Waiting for your turn"
   },
   "skip": {
@@ -95,6 +95,7 @@
     "label_other": "Tile {{letter}}, {{count}} points",
     "return_one": "Return tile {{letter}}, {{count}} point to rack",
     "return_other": "Return tile {{letter}}, {{count}} points to rack",
-    "cell": "Row {{row}}, column {{col}}, {{bonus}}"
+    "cell": "Row {{row}}, column {{col}}, {{bonus}}",
+    "bonusCell": "Row {{row}}, column {{col}}, {{label}}, {{bonus}}"
   }
 }

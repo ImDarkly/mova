@@ -30,7 +30,7 @@ export default function Tile({
   })
   const face = (
     <>
-      <span className="tile-letter">{tile.letter}</span>
+      <span className="tile-letter">{tile.letter}</span>{" "}
       {!hidePoints && <span className="tile-points">{tile.points}</span>}
     </>
   )

@@ -9,7 +9,7 @@ interface CellProps {
   col: number
   isOccupied: boolean
   disabled: boolean
-  selecting: boolean
+  tabStop: boolean
   onClick: () => void
   center?: boolean
 }
@@ -21,7 +21,7 @@ export default function Cell({
   col,
   isOccupied,
   disabled,
-  selecting,
+  tabStop,
   onClick,
   center,
 }: CellProps) {
@@ -34,13 +34,15 @@ export default function Cell({
     <button
       type="button"
       ref={setNodeRef}
+      data-row={row}
+      data-col={col}
       className={cn(
         "board-cell",
         variant,
         isOver && !isOccupied && "drop-hover"
       )}
       disabled={isOccupied || disabled}
-      tabIndex={selecting && !isOccupied && !disabled ? 0 : -1}
+      tabIndex={tabStop && !isOccupied && !disabled ? 0 : -1}
       aria-label={accessibleLabel}
       onClick={onClick}
     >

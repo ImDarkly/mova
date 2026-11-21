@@ -10,7 +10,10 @@ export default function RoomIdDisplay({ roomId }: { roomId: string }) {
       className="room-chip"
       variant="ghost"
       onClick={() => copy(roomId)}
-      aria-label={t("actions.copyInvite")}
+      aria-label={t("actions.copyInviteForRoom", {
+        room: t("labels.room"),
+        roomId,
+      })}
     >
       <span>
         {t("labels.room")} <b className="tracking-widest">{roomId}</b>

@@ -9,7 +9,7 @@ interface BoardCellProps {
   boardTile?: TileType
   rackIndex?: number
   disabled: boolean
-  selecting: boolean
+  tabStop: boolean
   onPlace: (row: number, col: number) => void
   onReturn: (index: number) => void
 }
@@ -19,7 +19,7 @@ export default function BoardCell({
   boardTile,
   rackIndex,
   disabled,
-  selecting,
+  tabStop,
   onPlace,
   onReturn,
 }: BoardCellProps) {
@@ -33,14 +33,20 @@ export default function BoardCell({
         col={col}
         variant={CELL_VARIANTS[type]}
         label={type === "normal" ? "" : t(`cellLabels.${type}`)}
-        accessibleLabel={game("tile.cell", {
-          row: row + 1,
-          col: col + 1,
-          bonus: t(`cellNames.${type}`),
-        })}
+        accessibleLabel={game(
+          type !== "normal" && type !== "center"
+            ? "tile.bonusCell"
+            : "tile.cell",
+          {
+            row: row + 1,
+            col: col + 1,
+            bonus: t(`cellNames.${type}`),
+            label: t(`cellLabels.${type}`),
+          }
+        )}
         isOccupied={!!boardTile}
         disabled={disabled}
-        selecting={selecting}
+        tabStop={tabStop}
         onClick={() => onPlace(row, col)}
         center={type === "center"}
       />
