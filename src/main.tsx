@@ -1,3 +1,4 @@
+import TableBackground from "@/components/TableBackground"
 import { StrictMode } from "react"
 import { createRoot } from "react-dom/client"
 import "@/lib/i18n"
@@ -17,7 +18,8 @@ const onI18nReady = () => {
   createRoot(rootEl).render(
     <StrictMode>
       <ThemeProvider>
-        <div className="flex h-svh min-h-0 w-full items-center justify-center p-4">
+        <TableBackground />
+        <div className="flex h-svh min-h-0 w-full items-center justify-center">
           <RouterProvider router={router} />
         </div>
         <Toaster position="top-center" />
