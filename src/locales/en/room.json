@@ -1,16 +1,28 @@
 {
   "actions": {
-    "createRoom": "Create Room",
-    "joinRoom": "Join Room",
-    "leaveRoom": "Leave Room",
-    "copyRoomLink": "Copy Link"
+    "createRoom": "Create a room",
+    "joinRoom": "Join room",
+    "leaveRoom": "Leave",
+    "copyRoomLink": "Copy link",
+    "copyInvite": "Copy invite link",
+    "imReady": "I'm ready",
+    "copyInviteForRoom": "{{room}} {{roomId}} — Copy invite link"
   },
   "labels": {
-    "you": "You"
+    "you": "You",
+    "room": "Room",
+    "roomCode": "Room code",
+    "gather": "Gather at the table",
+    "emptySeat": "Empty seat",
+    "invite": "Invite a friend",
+    "startsReady": "The game starts when everyone is ready.",
+    "readyCount": "{{ready}} of {{total}} ready",
+    "waiting": "Waiting for {{names}}…"
   },
   "player": {
     "ready": "Ready",
-    "notReady": "Not Ready"
+    "notReady": "Not ready",
+    "away": "Away"
   },
   "events": {
     "roomFull": {

@@ -8,41 +8,41 @@ import {
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
 import { REGEXP_ONLY_DIGITS_AND_CHARS } from "input-otp"
-import { Hash } from "lucide-react"
 import { ROOM_CODE_LENGTH } from "@/lib/roomId"
-
 export default function JoinRoomInput({ disabled }: { disabled?: boolean }) {
   const { t } = useTranslation("room")
   const [code, setCode] = useState("")
   const joinRoom = useJoinRoom()
-
-  const handleJoin = () => {
-    joinRoom(code)
-  }
-
   return (
-    <div className="flex flex-col gap-2">
+    <div className="flex flex-col gap-3">
+      <label htmlFor="room-code">{t("labels.roomCode")}</label>
       <InputOTP
+        id="room-code"
         maxLength={ROOM_CODE_LENGTH}
         value={code}
-        onChange={(value) => setCode(value.toUpperCase())}
+        onChange={(v) => setCode(v.toUpperCase())}
         pattern={REGEXP_ONLY_DIGITS_AND_CHARS}
         inputMode="text"
+        containerClassName="w-full"
+        onKeyDown={(e) => {
+          if (
+            e.key === "Enter" &&
+            !disabled &&
+            code.length === ROOM_CODE_LENGTH
+          )
+            joinRoom(code)
+        }}
       >
-        <div className="flex h-9 w-9 items-center justify-center rounded-l-full border border-r-0 border-input bg-input">
-          <Hash size={16} />
-        </div>
-        <InputOTPGroup>
-          <InputOTPSlot key={0} index={0} className="first:rounded-none" />
-          {Array.from({ length: ROOM_CODE_LENGTH - 1 }).map((_, i) => (
-            <InputOTPSlot key={i + 1} index={i + 1} />
+        <InputOTPGroup className="otp-group">
+          {Array.from({ length: ROOM_CODE_LENGTH }, (_, i) => (
+            <InputOTPSlot key={i} index={i} />
           ))}
         </InputOTPGroup>
       </InputOTP>
       <Button
-        disabled={code.length !== ROOM_CODE_LENGTH || disabled}
-        variant="secondary"
-        onClick={handleJoin}
+        className="card-secondary"
+        disabled={disabled || code.length !== ROOM_CODE_LENGTH}
+        onClick={() => joinRoom(code)}
       >
         {t("actions.joinRoom")}
       </Button>

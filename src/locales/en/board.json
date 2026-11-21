@@ -3,7 +3,14 @@
     "doubleLetter": "DL",
     "tripleLetter": "TL",
     "doubleWord": "DW",
-    "tripleWord": "TW",
-    "center": "★"
+    "tripleWord": "TW"
+  },
+  "cellNames": {
+    "normal": "empty square",
+    "doubleLetter": "double letter",
+    "tripleLetter": "triple letter",
+    "doubleWord": "double word",
+    "tripleWord": "triple word",
+    "center": "centre star"
   }
 }

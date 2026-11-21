@@ -2,11 +2,23 @@ import Board from "@/components/game/Board"
 import Rack from "@/components/game/Rack"
 import ScoreBoardList from "@/components/game/ScoreBoardList"
 import Tile from "@/components/game/Tile"
+import GameOver from "@/components/game/GameOver"
+import GameMenu from "@/components/game/GameMenu"
 import RoomLayout from "@/components/room/RoomLayout"
+import LeaveRoomButton from "@/components/room/LeaveRoomButton"
 import { Button } from "@/components/ui/button"
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogAction,
+  AlertDialogCancel,
+} from "@/components/ui/alert-dialog"
 import { useGameSession } from "@/hooks/game/useGameSession"
 import { useTileAssignment } from "@/hooks/game/useTileAssignment"
-import { getClientId } from "@/lib/clientId"
 import type { TileType } from "@/types/game"
 import {
   DndContext,
@@ -18,15 +30,21 @@ import {
   type DragEndEvent,
   type DragStartEvent,
 } from "@dnd-kit/core"
-import { Check, SkipForward, Trash } from "lucide-react"
-import { useEffect, useRef, useState } from "react"
-import { useNavigate, useParams } from "react-router"
+import { SkipForward, LoaderCircle } from "lucide-react"
+import { useEffect, useState } from "react"
+import { useParams } from "react-router"
 import { useTranslation } from "react-i18next"
 import { toast } from "sonner"
-
-function GameSessionView({ roomId }: { roomId: string }) {
+function GameTurn({
+  roomId,
+  session,
+  onLeave,
+}: {
+  roomId: string
+  session: ReturnType<typeof useGameSession>
+  onLeave: () => void
+}) {
   const { t } = useTranslation("game")
-  const navigate = useNavigate()
   const {
     tiles,
     players,
@@ -35,9 +53,8 @@ function GameSessionView({ roomId }: { roomId: string }) {
     boardTiles,
     send,
     scores,
-    gameOver,
     lastError,
-  } = useGameSession(roomId)
+  } = session
   const {
     rack,
     assignTile,
@@ -47,196 +64,232 @@ function GameSessionView({ roomId }: { roomId: string }) {
     returnAll,
     assignments,
   } = useTileAssignment(tiles)
-  const mergedBoardTiles = { ...boardTiles, ...pendingTiles }
+  const [selected, setSelected] = useState<number | null>(null)
   const [activeTile, setActiveTile] = useState<TileType | null>(null)
-
-  const isSubmittingRef = useRef(false)
-
+  const [submission, setSubmission] = useState<{
+    error: typeof lastError
+  } | null>(null)
+  const [skipOpen, setSkipOpen] = useState(false)
+  const submitting = submission !== null && submission.error === lastError
+  const disabled = !isMyTurn || submitting
+  const hasPlacements = Object.keys(assignments).length > 0
   const sensors = useSensors(
-    useSensor(MouseSensor, {
-      activationConstraint: { distance: 8 },
-    }),
-    useSensor(TouchSensor, {
-      activationConstraint: { distance: 10 },
-    })
+    useSensor(MouseSensor, { activationConstraint: { distance: 8 } }),
+    useSensor(TouchSensor, { activationConstraint: { distance: 10 } })
   )
-
   useEffect(() => {
-    if (lastError?.type === "SUBMIT_ERROR") {
-      isSubmittingRef.current = false
+    const clear = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setSelected(null)
     }
-  }, [lastError])
-
-  useEffect(() => {
-    if (isSubmittingRef.current) {
-      returnAll()
-      isSubmittingRef.current = false
-    }
-  }, [currentTurn, returnAll])
-
-  const handleDragStart = (event: DragStartEvent) => {
-    const activeData = event.active.data.current as
-      | { tile?: TileType }
-      | undefined
-    if (!activeData?.tile) return
-    setActiveTile(activeData.tile)
+    window.addEventListener("keydown", clear)
+    return () => window.removeEventListener("keydown", clear)
+  }, [])
+  const clear = () => {
+    returnAll()
+    setSelected(null)
   }
-
-  const handleDragEnd = (event: DragEndEvent) => {
+  const place = (index: number, row: number, col: number) => {
+    if (disabled || isOccupied(row, col) || boardTiles[`${row},${col}`]) return
+    assignTile(index, { row, col })
+    setSelected(null)
+  }
+  const dragStart = (event: DragStartEvent) => {
+    if (disabled) return
+    setSelected(null)
+    const data = event.active.data.current as { tile?: TileType } | undefined
+    if (data?.tile) setActiveTile(data.tile)
+  }
+  const dragEnd = (event: DragEndEvent) => {
     setActiveTile(null)
-
-    const { active, over } = event
-    if (!over || !active) return
-
-    const activeData = active.data.current as { rackIndex?: number } | undefined
-    const overData = over.data.current as
-      | { row?: number; col?: number }
-      | undefined
-
+    if (disabled) return
+    const index = event.active.data.current?.rackIndex
+    const over = event.over
+    if (typeof index !== "number" || !over) return
     if (over.id === "rack") {
-      if (typeof activeData?.rackIndex != "number") return
-      returnTile(activeData.rackIndex)
-    } else {
-      if (
-        typeof activeData?.rackIndex !== "number" ||
-        typeof overData?.row !== "number" ||
-        typeof overData?.col !== "number"
-      )
-        return
-      const coordKey = `${overData.row},${overData.col}`
-      if (isOccupied(overData.row, overData.col) || boardTiles[coordKey]) return
-      assignTile(activeData.rackIndex, { row: overData.row, col: overData.col })
+      returnTile(index)
+      return
+    }
+    const { row, col } = over.data.current ?? {}
+    if (typeof row === "number" && typeof col === "number")
+      place(index, row, col)
+  }
+  const submit = () => {
+    if (disabled || !hasPlacements) return
+    setSelected(null)
+    setSubmission({ error: lastError })
+    try {
+      send({
+        type: "SUBMIT_TURN",
+        placements: Object.entries(assignments).flatMap(([index, coord]) =>
+          coord
+            ? [{ rackIndex: Number(index), row: coord.row, col: coord.col }]
+            : []
+        ),
+      })
+    } catch {
+      setSubmission(null)
+      toast.error(t("errors.connection.failed.title"))
     }
   }
-
-  const handleDragCancel = () => {
-    setActiveTile(null)
-  }
-
-  const handleSubmitTurn = () => {
-    isSubmittingRef.current = true
-
-    const placements = Object.entries(assignments)
-      .filter(([, coord]) => coord != null)
-      .map(([rackIndex, coord]) => ({
-        rackIndex: Number(rackIndex),
-        row: coord!.row,
-        col: coord!.col,
-      }))
-
-    send({ type: "SUBMIT_TURN", placements })
-  }
-
-  const handleSkipTurn = () => {
+  const skip = () => {
+    setSkipOpen(false)
+    if (disabled) return
     try {
       send({ type: "SKIP_TURN" })
-      returnAll()
-    } catch (error) {
-      console.error("Failed to skip turn:", error)
-      toast.error(t("errors.skip.failed.title", "Failed to skip turn"), {
-        description: t(
-          "errors.skip.failed.description",
-          "An error occurred while skipping your turn."
-        ),
+      clear()
+    } catch {
+      toast.error(t("errors.skip.failed.title"), {
+        description: t("errors.skip.failed.description"),
       })
     }
   }
-
-  if (gameOver) {
-    const myId = getClientId()
-    const isWinner = gameOver.winnerIds.includes(myId)
-    const isTie = gameOver.winnerIds.length > 1
-
-    return (
-      <div className="flex flex-col items-center justify-center gap-6">
-        <h1 className="font-heading text-2xl font-medium">
-          {isTie && isWinner
-            ? t("labels.gameOver.tie")
-            : isWinner
-              ? t("labels.gameOver.win")
-              : t("labels.gameOver.lose")}
-        </h1>
-        <div className="flex flex-col gap-1">
-          {[...players]
-            .sort(
-              (a, b) =>
-                (gameOver.scores[b.id] ?? 0) - (gameOver.scores[a.id] ?? 0)
-            )
-            .map((p) => (
-              <div key={p.id} className="flex gap-4 text-sm">
-                <span
-                  className={
-                    p.id === myId ? "font-medium" : "text-muted-foreground"
-                  }
-                >
-                  {p.name}
-                </span>
-                <span>{gameOver.scores[p.id] ?? 0}</span>
-              </div>
-            ))}
-        </div>
-        <Button onClick={() => navigate("/")}>
-          {t("labels.gameOver.goHome")}
-        </Button>
-      </div>
-    )
-  }
-
+  const turnName = players.find((p) => p.id === currentTurn)?.name ?? ""
   return (
     <DndContext
       sensors={sensors}
-      onDragStart={handleDragStart}
-      onDragEnd={handleDragEnd}
-      onDragCancel={handleDragCancel}
+      onDragStart={dragStart}
+      onDragEnd={dragEnd}
+      onDragCancel={() => setActiveTile(null)}
     >
-      <RoomLayout roomId={roomId}>
-        <ScoreBoardList
-          players={players}
-          currentTurn={currentTurn}
-          scores={scores}
-        />
-        <div className="@container-[size] flex min-h-0 w-full flex-1 items-center justify-center">
-          <Board boardTiles={mergedBoardTiles} assignments={assignments} />
-        </div>
-        <div className="flex w-full items-center gap-2">
-          <Button
-            onClick={returnAll}
-            variant="destructive"
-            disabled={Object.keys(assignments).length === 0}
-            aria-label="Clear all placements"
-          >
-            <Trash />
-          </Button>
-          <Rack tiles={rack} disabled={!isMyTurn} />
-          <Button
-            variant="secondary"
-            disabled={!isMyTurn}
-            onClick={handleSkipTurn}
-            aria-label="Skip turn"
-          >
-            <SkipForward />
-          </Button>
-
-          <Button
-            variant="secondary"
-            disabled={!isMyTurn || Object.keys(assignments).length === 0}
-            onClick={handleSubmitTurn}
-            aria-label="Submit turn"
-          >
-            <Check />
-          </Button>
+      <RoomLayout
+        roomId={roomId}
+        onLeave={onLeave}
+        gameActions={
+          <GameMenu
+            roomId={roomId}
+            disabled={disabled}
+            onSkip={() => setSkipOpen(true)}
+            onLeave={onLeave}
+          />
+        }
+      >
+        <div className="game-layout">
+          <ScoreBoardList
+            players={players}
+            currentTurn={currentTurn}
+            scores={scores}
+          />
+          <main className="game-main">
+            <div className="board-space @container-[size]">
+              <Board
+                boardTiles={{ ...boardTiles, ...pendingTiles }}
+                assignments={assignments}
+                disabled={disabled}
+                selecting={selected !== null}
+                onPlace={(row, col) => {
+                  if (selected !== null) place(selected, row, col)
+                }}
+                onReturn={returnTile}
+              />
+            </div>
+            <div className="game-dock">
+              <p className="game-status" aria-live="polite" aria-atomic="true">
+                {submitting ? (
+                  t("status.checking")
+                ) : isMyTurn ? (
+                  <>
+                    <strong>{t("status.yourTurn")}</strong>{" "}
+                    {hasPlacements ? (
+                      t("status.ready")
+                    ) : (
+                      <>
+                        <span className="lg:hidden">{t("status.tap")}</span>
+                        <span className="hidden lg:inline">
+                          {t("status.tapOrDrag")}
+                        </span>
+                      </>
+                    )}
+                  </>
+                ) : (
+                  <>
+                    <span className="waiting-dot" />
+                    {t("status.playing", { name: turnName })}
+                  </>
+                )}
+              </p>
+              <div className="game-controls">
+                <Button
+                  className="skip-button"
+                  variant="ghost"
+                  disabled={disabled}
+                  onClick={() => setSkipOpen(true)}
+                >
+                  <SkipForward size={18} />
+                  {t("actions.skip")}
+                </Button>
+                <Rack
+                  tiles={rack}
+                  disabled={disabled}
+                  selected={selected}
+                  onSelect={(i) => setSelected(selected === i ? null : i)}
+                  onReturnAll={clear}
+                  hasPlacements={hasPlacements}
+                />
+                {isMyTurn ? (
+                  <Button
+                    className="play-button"
+                    disabled={disabled || !hasPlacements}
+                    aria-disabled={disabled || !hasPlacements}
+                    onClick={submit}
+                  >
+                    {submitting && <LoaderCircle className="animate-spin" />}
+                    {t(submitting ? "actions.playing" : "actions.play")}
+                  </Button>
+                ) : (
+                  <div className="wait-bar">{t("status.waiting")}</div>
+                )}
+              </div>
+            </div>
+          </main>
         </div>
       </RoomLayout>
-
       <DragOverlay dropAnimation={null}>
-        {activeTile ? <Tile tile={activeTile} hidePoints /> : null}
+        {activeTile ? <Tile tile={activeTile} lifted /> : null}
       </DragOverlay>
+      <AlertDialog open={skipOpen} onOpenChange={setSkipOpen}>
+        <AlertDialogContent size="sm">
+          <AlertDialogHeader>
+            <AlertDialogTitle>{t("skip.title")}</AlertDialogTitle>
+            <AlertDialogDescription>
+              {t("skip.description")}
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel>{t("skip.cancel")}</AlertDialogCancel>
+            <AlertDialogAction onClick={skip}>
+              {t("actions.skip")}
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </DndContext>
   )
 }
-
+// Player changes and authoritative rack snapshots begin a new draft.
+function GameSessionView({ roomId }: { roomId: string }) {
+  const session = useGameSession(roomId)
+  const [leaveOpen, setLeaveOpen] = useState(false)
+  return (
+    <>
+      {session.gameOver ? (
+        <GameOver players={session.players} result={session.gameOver} />
+      ) : (
+        <GameTurn
+          key={`${session.currentTurn}:${session.rackRevision}`}
+          roomId={roomId}
+          session={session}
+          onLeave={() => setLeaveOpen(true)}
+        />
+      )}
+      <LeaveRoomButton
+        hideTrigger
+        open={leaveOpen}
+        onOpenChange={setLeaveOpen}
+      />
+    </>
+  )
+}
 export default function Game() {
   const { roomId } = useParams<{ roomId: string }>()
-  if (!roomId) return null
-  return <GameSessionView roomId={roomId} />
+  return roomId ? <GameSessionView roomId={roomId} /> : null
 }

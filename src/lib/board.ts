@@ -88,12 +88,11 @@ export function getCellType(row: number, col: number): CellType {
 }
 
 export const CELL_VARIANTS = {
-  normal: "bg-background ",
-  doubleLetter: "bg-border text-muted-foreground/80",
-  tripleLetter: "bg-muted text-muted-foreground",
-  doubleWord: "bg-primary/5 text-primary/60",
-  tripleWord: "bg-primary/10 text-primary/70",
-  center: "bg-primary/10 text-primary/70",
+  normal: "bg-white/[.06] text-[#ffe6d2]",
+  doubleLetter: "bg-[#8c6a54] text-[#fff6ea]",
+  tripleLetter: "bg-[#e0a93f] text-[#3a2210]",
+  doubleWord: "bg-[#9e5249] text-[#fff3e6]",
+  tripleWord: "bg-[#d9643f] text-[#321714]",
+  center: "bg-[#9e5249] text-[#ffc074]",
 } as const satisfies Record<CellType, string>
-
 export type CellVariant = (typeof CELL_VARIANTS)[CellType]

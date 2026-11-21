@@ -1,66 +1,64 @@
 import { cn } from "@/lib/utils"
 import type { TileType } from "@/types/game"
 import { useDraggable } from "@dnd-kit/core"
-import { CSS } from "@dnd-kit/utilities"
-
-const LETTER_SIZE = "text-[clamp(1rem,3.5cqw,2rem)]"
-const POINTS_SIZE = "text-[clamp(0.5rem,3.5cqw,1rem)]"
-
+import { useTranslation } from "react-i18next"
 interface TileProps {
   tile: TileType
   rackIndex?: number
   disabled?: boolean
   hidePoints?: boolean
   isPending?: boolean
+  selected?: boolean
+  lifted?: boolean
+  onClick?: () => void
 }
-
 export default function Tile({
   tile,
   rackIndex,
   disabled,
   hidePoints,
   isPending,
+  selected,
+  lifted,
+  onClick,
 }: TileProps) {
-  const isStatic = rackIndex === undefined
-
-  const { attributes, listeners, setNodeRef, transform, isDragging } =
-    useDraggable({
-      id: `rack-${rackIndex}`,
-      disabled,
-      data: { rackIndex, tile },
-    })
-
-  const style = {
-    transform: transform ? CSS.Transform.toString(transform) : undefined,
-  }
-
+  const { t } = useTranslation("game")
+  const { attributes, listeners, setNodeRef, isDragging } = useDraggable({
+    id: `rack-${rackIndex}`,
+    disabled: disabled || rackIndex === undefined,
+    data: { rackIndex, tile },
+  })
+  const face = (
+    <>
+      <span className="tile-letter">{tile.letter}</span>{" "}
+      {!hidePoints && <span className="tile-points">{tile.points}</span>}
+    </>
+  )
+  const className = cn(
+    "game-tile",
+    isPending && "pending",
+    selected && "selected",
+    lifted && "lifted",
+    isDragging && "invisible"
+  )
+  if (rackIndex === undefined) return <span className={className}>{face}</span>
   return (
-    <div
-      className="relative h-full w-full cursor-grab"
+    <button
+      type="button"
       ref={setNodeRef}
-      style={style}
-      {...listeners}
       {...attributes}
+      {...listeners}
+      className={className}
+      disabled={disabled}
+      aria-disabled={disabled}
+      aria-pressed={!isPending ? !!selected : undefined}
+      aria-label={t(isPending ? "tile.return" : "tile.label", {
+        letter: tile.letter,
+        count: tile.points,
+      })}
+      onClick={onClick}
     >
-      <div
-        className={cn(
-          "absolute inset-[6%] flex items-center justify-center rounded-[12%] shadow-sm ring-1 ring-border",
-          !isStatic && isDragging && "opacity-0",
-          isPending ? "bg-accent text-accent-foreground" : "bg-card"
-        )}
-      >
-        <span className={cn("font-bold", LETTER_SIZE)}>{tile.letter}</span>
-        {!hidePoints && (
-          <span
-            className={cn(
-              "absolute right-[16%] bottom-[12%] font-medium text-muted-foreground",
-              POINTS_SIZE
-            )}
-          >
-            {tile.points}
-          </span>
-        )}
-      </div>
-    </div>
+      {face}
+    </button>
   )
 }

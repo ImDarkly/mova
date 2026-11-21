@@ -1,18 +1,20 @@
-import { useReadyState } from "@/hooks/room/useReadyState"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
-
-interface ReadyButtonProps {
-  send: (data: { type: "READY" } | { type: "UNREADY" }) => boolean
-}
-
-export default function ReadyButton({ send }: ReadyButtonProps) {
+export default function ReadyButton({
+  ready,
+  toggle,
+}: {
+  ready: boolean
+  toggle: () => void
+}) {
   const { t } = useTranslation("room")
-  const { ready, toggle } = useReadyState(send)
-
   return (
-    <Button onClick={toggle} variant={ready ? "secondary" : "default"}>
-      {ready ? t("player.notReady") : t("player.ready")}
+    <Button
+      className={`page-action ${ready ? "room-chip" : ""}`}
+      onClick={toggle}
+      variant={ready ? "ghost" : "default"}
+    >
+      {t(ready ? "player.notReady" : "actions.imReady")}
     </Button>
   )
 }

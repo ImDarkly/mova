@@ -1,6 +1,7 @@
 {
   "notFound": {
     "title": "Page not found",
-    "back": "Go home"
+    "back": "Go home",
+    "description": "This room may have ended, or the link is not quite right."
   }
 }

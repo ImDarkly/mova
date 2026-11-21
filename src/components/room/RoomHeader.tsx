@@ -1,15 +1,37 @@
-import LeaveRoomButton from "@/components/room/LeaveRoomButton"
-import RoomIdDisplay from "@/components/room/RoomIdDisplay"
-
-interface RoomHeaderProps {
+import type { ReactNode } from "react"
+import LeaveRoomButton from "./LeaveRoomButton"
+import RoomIdDisplay from "./RoomIdDisplay"
+export default function RoomHeader({
+  roomId,
+  gameActions,
+  onLeave,
+}: {
   roomId: string
-}
-
-export default function RoomHeader({ roomId }: RoomHeaderProps) {
+  gameActions?: ReactNode
+  onLeave?: () => void
+}) {
   return (
-    <div className="flex h-16 w-full items-center justify-between gap-2">
-      <RoomIdDisplay roomId={roomId} />
-      <LeaveRoomButton />
-    </div>
+    <header className="room-header">
+      {gameActions && (
+        <span className="hidden text-xl font-black lg:block">
+          mova<span className="text-[#ffb36b]">.</span>
+        </span>
+      )}
+      <div
+        className={`flex w-full items-center justify-between gap-2 ${gameActions ? "lg:ml-auto lg:w-auto" : ""}`}
+      >
+        <RoomIdDisplay roomId={roomId} />
+        {gameActions ? (
+          <>
+            <div className="hidden lg:block">
+              <LeaveRoomButton onRequestLeave={onLeave} />
+            </div>
+            {gameActions}
+          </>
+        ) : (
+          <LeaveRoomButton />
+        )}
+      </div>
+    </header>
   )
 }

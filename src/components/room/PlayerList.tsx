@@ -1,25 +1,29 @@
 import type { Player } from "@/types/room"
 import PlayerItem from "./PlayerItem"
 import { getClientId } from "@/lib/clientId"
-
-interface PlayerListProps {
-  players: Player[]
-}
-
-export default function PlayerList({ players }: PlayerListProps) {
-  const myId = getClientId()
-
+import { MAX_PLAYERS } from "@/lib/room"
+import { useTranslation } from "react-i18next"
+export default function PlayerList({ players }: { players: Player[] }) {
+  const { t } = useTranslation("room")
   return (
-    <div className="flex h-full w-auto flex-col justify-center gap-1">
-      {players.map((player) => {
-        return (
-          <PlayerItem
-            key={player.id}
-            player={player}
-            isMe={myId === player.id}
-          />
+    <div className="piece-card">
+      {players.map((p, i) => (
+        <PlayerItem
+          key={p.id}
+          player={p}
+          isMe={p.id === getClientId()}
+          index={i}
+        />
+      ))}
+      {Array.from(
+        { length: Math.max(0, MAX_PLAYERS - players.length) },
+        (_, i) => (
+          <div key={i} className="seat-row seat-empty">
+            <span className="pawn" aria-hidden="true" />
+            {t("labels.emptySeat")}
+          </div>
         )
-      })}
+      )}
     </div>
   )
 }

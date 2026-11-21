@@ -7,7 +7,7 @@ export default function CreateRoomButton({ disabled }: { disabled?: boolean }) {
   const createRoom = useCreateRoom()
 
   return (
-    <Button disabled={disabled} onClick={createRoom}>
+    <Button className="w-full" disabled={disabled} onClick={createRoom}>
       {t("actions.createRoom")}
     </Button>
   )

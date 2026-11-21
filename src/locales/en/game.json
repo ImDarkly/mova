@@ -56,8 +56,46 @@
     "gameOver": {
       "tie": "It's a tie!",
       "win": "You win!",
-      "lose": "You lose!",
-      "goHome": "Go Home"
-    }
+      "goHome": "Back to home",
+      "winner": "{{name}} wins!",
+      "finished": "You finished {{place}} with {{score}} points.",
+      "ordinal_one": "{{count}}st",
+      "ordinal_two": "{{count}}nd",
+      "ordinal_few": "{{count}}rd",
+      "ordinal_other": "{{count}}th"
+    },
+    "players": "Players",
+    "playing": "PLAYING",
+    "disconnected": "Disconnected"
+  },
+  "actions": {
+    "returnAll": "Return tiles to rack",
+    "play": "Play word",
+    "playing": "Playing…",
+    "skip": "Skip turn",
+    "more": "More",
+    "leave": "Leave game…"
+  },
+  "status": {
+    "yourTurn": "Your turn.",
+    "tap": "Tap a tile, then a square.",
+    "tapOrDrag": "Tap a tile, then a square, or drag it.",
+    "ready": "Press Play word when ready.",
+    "playing": "{{name}} is playing…",
+    "checking": "Checking your word…",
+    "waiting": "Waiting for your turn"
+  },
+  "skip": {
+    "title": "Skip your turn?",
+    "description": "Your placed tiles go back to your rack.",
+    "cancel": "Keep playing"
+  },
+  "tile": {
+    "label_one": "Tile {{letter}}, {{count}} point",
+    "label_other": "Tile {{letter}}, {{count}} points",
+    "return_one": "Return tile {{letter}}, {{count}} point to rack",
+    "return_other": "Return tile {{letter}}, {{count}} points to rack",
+    "cell": "Row {{row}}, column {{col}}, {{bonus}}",
+    "bonusCell": "Row {{row}}, column {{col}}, {{label}}, {{bonus}}"
   }
 }
