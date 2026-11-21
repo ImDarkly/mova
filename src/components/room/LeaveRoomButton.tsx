@@ -1,3 +1,4 @@
+import { LogOut } from "lucide-react"
 import { useLeaveRoom } from "@/hooks/room/useLeaveRoom"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
@@ -13,7 +14,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 
-export default function LeaveRoomButton() {
+export default function LeaveRoomButton({
+  open,
+  onOpenChange,
+  hideTrigger = false,
+}: {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  hideTrigger?: boolean
+}) {
   const { t } = useTranslation("room")
   const leaveRoom = useLeaveRoom()
 
@@ -22,10 +31,17 @@ export default function LeaveRoomButton() {
   }
 
   return (
-    <AlertDialog>
-      <AlertDialogTrigger
-        render={<Button variant="destructive">{t("actions.leaveRoom")}</Button>}
-      />
+    <AlertDialog open={open} onOpenChange={onOpenChange}>
+      {!hideTrigger && (
+        <AlertDialogTrigger
+          render={
+            <Button variant="ghost" className="room-chip">
+              <LogOut size={18} />
+              {t("actions.leaveRoom")}
+            </Button>
+          }
+        />
+      )}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{t("dialogs.leaveRoom.title")}</AlertDialogTitle>

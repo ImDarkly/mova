@@ -1,5 +1,8 @@
 {
-  "or": "or",
   "and": "and",
-  "nameInput": "Your name"
+  "nameInput": "Your name",
+  "tagline": "Word tiles with friends. Share a link, no account needed.",
+  "namePlaceholder": "e.g. Oksana",
+  "nameHelper": "Your friends will see this name.",
+  "orJoin": "or join a friend"
 }

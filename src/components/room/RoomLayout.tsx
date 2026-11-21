@@ -1,15 +1,17 @@
 import type { ReactNode } from "react"
 import RoomHeader from "./RoomHeader"
-
-interface RoomLayoutProps {
+export default function RoomLayout({
+  roomId,
+  children,
+  gameActions,
+}: {
   roomId: string
   children: ReactNode
-}
-
-export default function RoomLayout({ roomId, children }: RoomLayoutProps) {
+  gameActions?: ReactNode
+}) {
   return (
-    <div className="flex h-full min-h-0 w-full flex-col gap-2">
-      <RoomHeader roomId={roomId} />
+    <div className="room-layout">
+      <RoomHeader roomId={roomId} gameActions={gameActions} />
       {children}
     </div>
   )

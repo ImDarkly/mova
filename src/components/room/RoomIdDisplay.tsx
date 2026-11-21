@@ -1,26 +1,21 @@
 import { useCopyRoomLink } from "@/hooks/room/useCopyRoomLink"
-import { Input } from "@/components/ui/input"
 import { Button } from "@/components/ui/button"
 import { useTranslation } from "react-i18next"
-
-interface RoomIdDisplayProps {
-  roomId: string
-}
-
-export default function RoomIdDisplay({ roomId }: RoomIdDisplayProps) {
+import { Copy } from "lucide-react"
+export default function RoomIdDisplay({ roomId }: { roomId: string }) {
   const { t } = useTranslation("room")
-  const copyRoomLink = useCopyRoomLink()
-
-  const handleCopy = () => {
-    copyRoomLink(roomId)
-  }
-
+  const copy = useCopyRoomLink()
   return (
-    <div className="flex gap-1">
-      <Input readOnly value={roomId} className="field-sizing-content" />
-      <Button variant="secondary" onClick={handleCopy}>
-        {t("actions.copyRoomLink")}
-      </Button>
-    </div>
+    <Button
+      className="room-chip"
+      variant="ghost"
+      onClick={() => copy(roomId)}
+      aria-label={t("actions.copyInvite")}
+    >
+      <span>
+        {t("labels.room")} <b className="tracking-widest">{roomId}</b>
+      </span>
+      <Copy size={18} strokeWidth={2.2} />
+    </Button>
   )
 }
