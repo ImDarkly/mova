@@ -5,8 +5,8 @@ Real-time multiplayer word tile game for 2–4 players — create a room, share 
 ## Commands
 
 - dev: `npm run dev:all` (Vite on :5173 + Wrangler/PartyServer on :1999) — `npm run dev` for frontend only
-- verify: `npm run verify` (lint + typecheck + build)
-- tests: `npm run test:ui` (Playwright browser regressions; see README for browser setup)
+- verify: `npm run verify` (lint + typecheck + unit tests + build)
+- tests: `npm test` (Vitest unit tests for `party/lib`), `npm run test:ui` (Playwright browser regressions; see README for browser setup)
 
 ## Rules
 
