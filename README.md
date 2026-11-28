@@ -57,7 +57,7 @@ sequenceDiagram
   else invalid move
     S->>A: SUBMIT_ERROR (e.g. GAP_NOT_FILLED, INVALID_WORD)
   else valid move
-    S->>S: place tiles, score, refill rack, advance turn
+    S->>S: place tiles, score, refill rack, then advance turn unless the game is over
     S->>A: RACK_STATE (A's new tiles only)
     S->>A: BOARD_STATE
     S->>B: BOARD_STATE
