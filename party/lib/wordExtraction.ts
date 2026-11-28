@@ -74,12 +74,6 @@ export function extractWordsFormed(
   return words
 }
 
-// NOTE: The board traversal logic below is intentionally duplicated from getWordAt.
-// This is a deliberate choice to maintain SRP (cohesion) and adhere to project
-// constraints against refactoring existing, stable code ("Don't refactor things
-// that aren't broken"). This keeps the changes surgical and avoids introducing
-// speculative abstractions for single-use logic.
-
 export function getWordTilesAt(
   board: Board,
   row: number,

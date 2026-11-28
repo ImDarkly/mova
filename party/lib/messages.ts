@@ -42,10 +42,8 @@ export function sendGameStart(
   conn.send(JSON.stringify({ type: "GAME_START", currentTurn, scores }))
 }
 
-export function broadcastBoardState(
-  server: MovaServer,
-  board: (Tile | null)[][]
-) {
+// The client looks tiles up by "row,col", so every board message uses this shape.
+export function flattenBoard(board: (Tile | null)[][]): Record<string, Tile> {
   const flat: Record<string, Tile> = {}
 
   for (let row = 0; row < board.length; row++) {
@@ -56,7 +54,20 @@ export function broadcastBoardState(
       }
     }
   }
-  server.broadcast(JSON.stringify({ type: "BOARD_STATE", board: flat }))
+  return flat
+}
+
+export function broadcastBoardState(
+  server: MovaServer,
+  board: (Tile | null)[][]
+) {
+  server.broadcast(
+    JSON.stringify({ type: "BOARD_STATE", board: flattenBoard(board) })
+  )
+}
+
+export function sendBoardState(conn: Connection, board: (Tile | null)[][]) {
+  conn.send(JSON.stringify({ type: "BOARD_STATE", board: flattenBoard(board) }))
 }
 
 export function sendSubmitError(conn: Connection, error: ValidationError) {

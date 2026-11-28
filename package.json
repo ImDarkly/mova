@@ -12,8 +12,9 @@
     "lint": "eslint .",
     "format": "prettier --write \"**/*.{ts,tsx}\"",
     "typecheck": "tsc --noEmit",
-    "verify": "npm run lint && npm run typecheck && npm run build",
+    "verify": "npm run lint && npm run typecheck && npm test && npm run build",
     "preview": "vite preview",
+    "test": "vitest run --dir party",
     "test:ui": "node --test --test-concurrency=1 tests/review-regressions.test.mjs"
   },
   "dependencies": {
@@ -59,6 +60,7 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.57.1",
     "vite": "^7.3.1",
+    "vitest": "^3.2.7",
     "wrangler": "^4.151.0"
   }
 }
