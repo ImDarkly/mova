@@ -61,8 +61,13 @@ sequenceDiagram
     S->>A: RACK_STATE (A's new tiles only)
     S->>A: BOARD_STATE
     S->>B: BOARD_STATE
-    S->>A: TURN_CHANGE { currentTurn, scores }
-    S->>B: TURN_CHANGE { currentTurn, scores }
+    alt bag and rack empty
+      S->>A: GAME_OVER { winnerIds, scores }
+      S->>B: GAME_OVER { winnerIds, scores }
+    else game continues
+      S->>A: TURN_CHANGE { currentTurn, scores }
+      S->>B: TURN_CHANGE { currentTurn, scores }
+    end
   end
 ```
 
@@ -118,7 +123,7 @@ npm install
 npm run dev:all     # Vite on localhost:5173 + Wrangler/PartyServer on localhost:1999
 ```
 
-Open `http://localhost:5173` in two browser windows to play against yourself.
+Open `http://localhost:5173` in a normal window and a private window (or two browser profiles) to play against yourself. Two windows in the same profile share `localStorage`, so they would share one player id and one seat.
 
 ## Tests
 
