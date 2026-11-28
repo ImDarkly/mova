@@ -1,7 +1,7 @@
 import { routePartykitRequest, Server } from "partyserver"
 import type { Connection, WSMessage } from "partyserver"
 import { GameState } from "./lib/gameState"
-import { toPublicPlayer, type Tile } from "./lib/types"
+import { toPublicPlayer } from "./lib/types"
 import {
   broadcastBoardState,
   broadcastGameOver,
@@ -9,6 +9,7 @@ import {
   broadcastRoomState,
   broadcastTurnChange,
   sendGameStart,
+  sendBoardState,
   sendRack,
   sendRoomFull,
   sendSubmitError,
@@ -60,7 +61,7 @@ export class MovaServer extends Server<Env> {
       }
 
       sendGameStart(conn, reconnectResult.currentTurn, reconnectResult.scores)
-      this.sendBoardState(conn, reconnectResult.board)
+      sendBoardState(conn, reconnectResult.board)
       broadcastTurnChange(
         this,
         reconnectResult.currentTurn,
@@ -174,10 +175,6 @@ export class MovaServer extends Server<Env> {
 
     const scores = this.getScores()
     broadcastTurnChange(this, this.gameState.currentTurn, scores)
-  }
-
-  private sendBoardState(conn: Connection, board: (Tile | null)[][]) {
-    conn.send(JSON.stringify({ type: "BOARD_STATE", board }))
   }
 
   private getScores(): Record<string, number> {
